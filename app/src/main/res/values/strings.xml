@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">LabLog</string>
+    <string name="summary_cards_description">List of summary cards</string>
+    <string name="logo_image_description">LabLog logo image</string>
+    <string name="search_image_description">search icon</string>
+    <string name="add_image_description">add icon</string>
+    <string name="settings_image_description">settings icon</string>
+    <string name="back_button_description">back icon</string>
+    <string name="latest_entries">Latest entries</string>
+    <string name="entry_text">pH | 9.2</string>
+    <string name="saveButton">SAVE</string>
+    <string name="new_entry">New entry</string>
+    <string name="timestamp">Timestamp: 2024–08–30T14:37:57+00:00</string>
+    <string name="new_key">+ Add new Key</string>
+    <string name="payloadText">Payload:</string>
+
+
 </resources>

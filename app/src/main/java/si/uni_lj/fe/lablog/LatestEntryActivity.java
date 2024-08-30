@@ -1,6 +1,6 @@
 package si.uni_lj.fe.lablog;
-
 import android.content.Intent;
+
 import android.os.Bundle;
 import android.view.View;
 
@@ -10,32 +10,29 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
+public class LatestEntryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_latest_entry);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Hide the back button in MainActivity
+        // Find the back button by its ID
         View backButton = findViewById(R.id.backButton);
-        backButton.setVisibility(View.GONE);
 
-        // Find the CardView by its ID
-        View latestEntriesCard = findViewById(R.id.latestEntriesCard);
+        // Make the back button visible
+        backButton.setVisibility(View.VISIBLE);
 
-        // Set an OnClickListener to the CardView
-        latestEntriesCard.setOnClickListener(v -> {
-            // Create an Intent to navigate to LatestEntryActivity
-            Intent intent = new Intent(MainActivity.this, LatestEntryActivity.class);
-            // Start the activity
-            startActivity(intent);
+        // Set an OnClickListener on the back button to return to the previous activity
+        backButton.setOnClickListener(v -> {
+            // Finish this activity to return to the previous one
+            finish();
         });
 
 
@@ -45,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         // Set an OnClickListener to the addButton
         addButton.setOnClickListener(v -> {
             // Create an Intent to navigate to NewEntryActivity
-            Intent intent = new Intent(MainActivity.this, NewEntryActivity.class);
+            Intent intent = new Intent(LatestEntryActivity.this, NewEntryActivity.class);
             // Start the activity
             startActivity(intent);
         });
