@@ -11,9 +11,22 @@
     <string name="saveButton">SAVE</string>
     <string name="new_entry">New entry</string>
     <string name="timestamp">Timestamp: 2024–08–30T14:37:57+00:00</string>
-    <string name="new_key">+ Add new Key</string>
+    <string name="add_key">+ Add Key</string>
     <string name="payloadText">Payload:</string>
     <string name="latest_entries_card">Latest entries</string>
+    <string name="recent_keys">Recent Keys</string>
+    <string name="new_key">+ New Key</string>
+    <string name="select_type_for_this_key">Select type for this key:</string>
+    <string name="save_key">Save Key</string>
+    <string name="give_the_new_key_a_name">Give the new key a name:</string>
+    <string name="key_name_hint">hint: value, picture, validity, id, description, unit</string>
 
+    <string-array name="key_type_options">
+        <item>String</item>
+        <item>Boolean</item>
+        <item>Integer</item>
+        <item>Float</item>
+        <item>Image</item>
+    </string-array>
 
 </resources>

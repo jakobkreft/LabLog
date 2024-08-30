@@ -45,8 +45,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/rounded_background"
-                android:padding="8dp"
-                android:paddingVertical="8dp"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="10dp"
                 android:text="@string/entry_text"
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />

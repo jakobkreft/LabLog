@@ -10,13 +10,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class NewEntryActivity extends AppCompatActivity {
+public class RecentKeysActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_new_entry);
+        setContentView(R.layout.activity_recent_keys);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -28,13 +28,13 @@ public class NewEntryActivity extends AppCompatActivity {
         backButton.setVisibility(View.VISIBLE);
         backButton.setOnClickListener(v -> finish());
 
-        // Find the AddKey TextView by its ID
-        View addKeyTextView = findViewById(R.id.AddKey);
+        // Find the newKey TextView by its ID
+        View newKeyTextView = findViewById(R.id.newKey);
 
-        // Set an OnClickListener to the AddKey TextView
-        addKeyTextView.setOnClickListener(v -> {
-            // Create an Intent to navigate to RecentKeysActivity
-            Intent intent = new Intent(NewEntryActivity.this, RecentKeysActivity.class);
+        // Set an OnClickListener to the newKey TextView
+        newKeyTextView.setOnClickListener(v -> {
+            // Create an Intent to navigate to NewKeyActivity
+            Intent intent = new Intent(RecentKeysActivity.this, NewKeyActivity.class);
             // Start the activity
             startActivity(intent);
         });

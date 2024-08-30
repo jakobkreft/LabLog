@@ -13,6 +13,12 @@
         android:theme="@style/Theme.LabLog"
         tools:targetApi="31">
         <activity
+            android:name=".NewKeyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RecentKeysActivity"
+            android:exported="false" />
+        <activity
             android:name=".NewEntryActivity"
             android:exported="false" />
         <activity

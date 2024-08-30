@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
-    tools:context=".LatestEntryActivity">
+    tools:context=".NewKeyActivity">
 
     <include
         layout="@layout/layout_header"
@@ -35,52 +35,38 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/newentrytext"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:text="@string/new_entry"
+                android:text="@string/give_the_new_key_a_name"
                 android:textColor="#FFFFFF"
                 android:textSize="20sp" />
 
-            <TextView
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:background="@drawable/entries_rounded_background"
-                android:includeFontPadding="false"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="10dp"
-                android:text="@string/timestamp"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:layout_height="match_parent"
+                android:hint="@string/key_name_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
-                android:id="@+id/payloadText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:text="@string/payloadText"
+                android:text="@string/select_type_for_this_key"
                 android:textColor="#FFFFFF"
                 android:textSize="20sp" />
 
-            <TextView
-                android:id="@+id/AddKey"
+            <Spinner
+                android:id="@+id/spinner"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:background="@drawable/entries_rounded_background"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="15dp"
-                android:text="@string/add_key"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:layout_height="50dp"
+                android:entries="@array/key_type_options" />
 
         </LinearLayout>
     </ScrollView>
@@ -99,10 +85,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="@string/saveButton"
+            android:text="@string/save_key"
             android:textColor="@color/save_button"
             android:textSize="34sp" />
     </LinearLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
