@@ -13,6 +13,7 @@
     <string name="timestamp">Timestamp: 2024–08–30T14:37:57+00:00</string>
     <string name="new_key">+ Add new Key</string>
     <string name="payloadText">Payload:</string>
+    <string name="latest_entries_card">Latest entries</string>
 
 
 </resources>
