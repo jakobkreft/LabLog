@@ -22,6 +22,7 @@
     <string name="key_name_hint">hint: value, picture, validity, id, description, unit</string>
 
     <string-array name="key_type_options">
+        <item>No Type</item>
         <item>String</item>
         <item>Boolean</item>
         <item>Integer</item>

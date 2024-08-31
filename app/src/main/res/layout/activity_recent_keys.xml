@@ -44,39 +44,14 @@
                 android:textSize="20sp" />
 
             <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/flexboxLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:flexWrap="wrap"
+                app:alignContent="stretch"
                 app:alignItems="stretch"
-                app:alignContent="stretch" >
+                app:flexWrap="wrap">
 
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:background="@drawable/entries_rounded_background"
-                    android:includeFontPadding="false"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="10dp"
-                    android:text="@string/entry_text"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    app:layout_alignSelf="center" />
-
-                <TextView
-                    android:id="@+id/newKey"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:background="@drawable/entries_rounded_background"
-                    android:includeFontPadding="false"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="10dp"
-                    android:text="@string/new_key"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    app:layout_alignSelf="center" />
 
 
 

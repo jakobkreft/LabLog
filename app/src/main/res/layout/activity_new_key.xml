@@ -39,6 +39,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
+                android:paddingBottom="8dp"
                 android:text="@string/give_the_new_key_a_name"
                 android:textColor="#FFFFFF"
                 android:textSize="20sp" />
@@ -46,29 +47,51 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:hint="@string/key_name_hint">
+                android:hint="@string/key_name_hint"
+                app:boxStrokeColor="#FFFFFF"
+                app:boxStrokeErrorColor="#FF3333"
+                app:hintTextColor="#999999"
+                app:boxBackgroundMode="outline"
+                app:boxCornerRadiusTopEnd="30dp"
+                app:boxCornerRadiusTopStart="30dp"
+                app:boxCornerRadiusBottomEnd="30dp"
+                app:boxCornerRadiusBottomStart="30dp">
+
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/nameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:maxLength="40"
+                    android:singleLine="true"
                     android:textColor="@color/white"
                     android:textColorLink="#9C27B0" />
+
             </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:text="@string/select_type_for_this_key"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp" />
-
-            <Spinner
-                android:id="@+id/spinner"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:entries="@array/key_type_options" />
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:paddingTop="25dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:text="@string/select_type_for_this_key"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp" />
+
+                <Spinner
+                    android:id="@+id/spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:entries="@array/key_type_options" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
