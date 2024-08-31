@@ -15,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.flexbox.FlexboxLayout;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import si.uni_lj.fe.lablog.data.AppDatabase;
@@ -26,6 +27,7 @@ public class RecentKeysActivity extends AppCompatActivity {
     private FlexboxLayout flexboxLayout;
     private TextView newKeyTextView;
     private LayoutInflater inflater;
+    private ArrayList<String> selectedKeysList; // List to hold selected keys
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,9 @@ public class RecentKeysActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Get the list of selected keys from the intent
+        selectedKeysList = getIntent().getStringArrayListExtra("selectedKeys");
 
         // Find the FlexboxLayout by its ID
         flexboxLayout = findViewById(R.id.flexboxLayout);
@@ -60,6 +65,7 @@ public class RecentKeysActivity extends AppCompatActivity {
         backButton.setOnClickListener(v -> finish());
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -80,15 +86,34 @@ public class RecentKeysActivity extends AppCompatActivity {
 
                 // Dynamically create and add TextViews for each key
                 for (Key key : keyList) {
+                    // Skip already selected keys
+                    if (selectedKeysList.contains(key.name)) {
+                        continue;
+                    }
+
                     TextView keyTextView = (TextView) inflater.inflate(R.layout.key_text_view_layout, flexboxLayout, false);
                     keyTextView.setText(key.name.trim()); // Set the key name
 
                     // Add the TextView to the FlexboxLayout
                     flexboxLayout.addView(keyTextView);
 
-                    // Optionally, set an OnClickListener if you want to add functionality
-                    keyTextView.setOnClickListener(v -> Toast.makeText(RecentKeysActivity.this,
-                            "Clicked on " + key.name, Toast.LENGTH_SHORT).show());
+                    // Set an OnClickListener to return the selected key's details
+                    keyTextView.setOnClickListener(v -> {
+                        // Create an Intent to pass data back
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra("keyName", key.name);
+                        resultIntent.putExtra("keyType", key.type);
+
+                        // Set the result with the Intent
+                        setResult(RESULT_OK, resultIntent);
+
+                        // Show a Toast message
+                        Toast.makeText(RecentKeysActivity.this,
+                                key.name + " key selected.", Toast.LENGTH_SHORT).show();
+
+                        // Finish the activity and return to NewEntryActivity
+                        finish();
+                    });
                 }
 
                 // Add the newKey TextView as the last element
@@ -96,4 +121,5 @@ public class RecentKeysActivity extends AppCompatActivity {
             });
         }).start();
     }
+
 }

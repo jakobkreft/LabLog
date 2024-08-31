@@ -12,7 +12,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:background="@android:color/white"
-        app:cardBackgroundColor="#FFFFFF"
+        app:cardBackgroundColor="#262626"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -38,9 +38,11 @@
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:text="@string/latest_entries_card"
+                android:textColor="#FFFFFF"
                 android:textSize="16sp" />
 
             <TextView
+                android:id="@+id/textValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
@@ -48,27 +50,46 @@
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="10dp"
                 android:text="@string/entry_text"
-                android:textColor="@android:color/black"
+                android:textColor="@color/white"
                 android:textSize="16sp" />
 
-            <TextView
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/textInputLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/rounded_background"
-                android:padding="8dp"
-                android:text="@string/entry_text"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
+                android:layout_height="match_parent">
 
-            <TextView
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/textInputEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="paylaod value" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <CheckBox
+                android:id="@+id/checkBox2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="CheckBox"
+                android:textColor="@color/white" />
+
+            <ImageButton
+                android:id="@+id/imageButton"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="#00000000"
+                android:contentDescription="@string/takepicture"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_camera" />
+
+            <ImageView
+                android:id="@+id/imageView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/rounded_background"
-                android:padding="8dp"
-                android:text="@string/entry_text"
-                android:textColor="@android:color/black"
-                android:textSize="16sp" />
+                android:contentDescription="@string/captured_image"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_picture" />
 
             <!-- Repeat for Entry 2 and Entry 3 -->
 

@@ -29,13 +29,14 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
+            android:id="@+id/scrollViewEntriesLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/newentrytext"
+                android:id="@+id/keyNameText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"
@@ -44,17 +45,11 @@
                 android:textColor="#FFFFFF"
                 android:textSize="20sp" />
 
-            <TextView
+            <LinearLayout
+                android:id="@+id/timestampLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:background="@drawable/entries_rounded_background"
-                android:includeFontPadding="false"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="10dp"
-                android:text="@string/timestamp"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:layout_height="match_parent"
+                android:orientation="vertical"></LinearLayout>
 
             <TextView
                 android:id="@+id/payloadText"

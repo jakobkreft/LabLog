@@ -10,7 +10,7 @@
     <string name="entry_text">pH | 9.2</string>
     <string name="saveButton">SAVE</string>
     <string name="new_entry">New entry</string>
-    <string name="timestamp">Timestamp: 2024–08–30T14:37:57+00:00</string>
+    <string name="timestamp">2024–08–30T14:37:57+00:00</string>
     <string name="add_key">+ Add Key</string>
     <string name="payloadText">Payload:</string>
     <string name="latest_entries_card">Latest entries</string>
@@ -20,6 +20,10 @@
     <string name="save_key">Save Key</string>
     <string name="give_the_new_key_a_name">Give the new key a name:</string>
     <string name="key_name_hint">hint: value, picture, validity, id, description, unit</string>
+    <string name="timestamp_text">Timestamp:</string>
+    <string name="takepicture">takePicture</string>
+    <string name="captured_image">captured Image</string>
+    <string name="timestampText">Timestamp</string>
 
     <string-array name="key_type_options">
         <item>No Type</item>
