@@ -5,8 +5,11 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.CheckBox;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -120,27 +123,36 @@ public class NewEntryActivity extends AppCompatActivity {
             case "String":
                 // Show the TextInput for String
                 keyCardView.findViewById(R.id.textInputLayout).setVisibility(View.VISIBLE);
+                TextInputEditText stringEditText = keyCardView.findViewById(R.id.textInputEditText);
+                stringEditText.setTag(keyName); // Tag with the key name
                 break;
             case "Boolean":
                 // Show the CheckBox for Boolean
                 keyCardView.findViewById(R.id.checkBox2).setVisibility(View.VISIBLE);
+                CheckBox checkBox = keyCardView.findViewById(R.id.checkBox2);
+                checkBox.setTag(keyName); // Tag with the key name
                 break;
             case "Integer":
                 // Show the TextInput for Int and set input type to number
                 keyCardView.findViewById(R.id.textInputLayout).setVisibility(View.VISIBLE);
                 TextInputEditText intEditText = keyCardView.findViewById(R.id.textInputEditText);
                 intEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                intEditText.setTag(keyName); // Tag with the key name
                 break;
             case "Float":
                 // Show the TextInput for Float and set input type to decimal number
                 keyCardView.findViewById(R.id.textInputLayout).setVisibility(View.VISIBLE);
                 TextInputEditText floatEditText = keyCardView.findViewById(R.id.textInputEditText);
                 floatEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                floatEditText.setTag(keyName); // Tag with the key name
                 break;
             case "Image":
                 // Show the ImageButton for Image capture
                 keyCardView.findViewById(R.id.imageButton).setVisibility(View.VISIBLE);
-                keyCardView.findViewById(R.id.imageView).setVisibility(View.VISIBLE);
+                ImageButton imageButton = keyCardView.findViewById(R.id.imageButton);
+                ImageView imageView = keyCardView.findViewById(R.id.imageView);
+                imageButton.setTag(keyName); // Tag with the key name
+                imageView.setTag(keyName);   // Tag with the key name
                 break;
             default:
                 // Handle any other types if necessary
@@ -150,5 +162,4 @@ public class NewEntryActivity extends AppCompatActivity {
         // Add the new key card to the LinearLayout
         linearLayout.addView(keyCardView);
     }
-
 }

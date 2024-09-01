@@ -80,22 +80,25 @@
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/footer"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
+        <Button
             android:id="@+id/SaveKeyButton"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:padding="8dp"
-            android:text="@string/saveButton"
-            android:textColor="@color/save_button"
-            android:textSize="34sp" />
+            android:layout_marginHorizontal="24dp"
+            android:background="@drawable/entries_rounded_background"
+            android:text="Save"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="22dp"
+            app:icon="@drawable/ic_save"
+            app:iconGravity="textStart"
+            app:iconTint="@color/white" />
+
     </LinearLayout>
 
     <include
