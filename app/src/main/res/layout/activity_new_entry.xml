@@ -8,18 +8,11 @@
     android:background="#000000"
     tools:context=".LatestEntryActivity">
 
-    <include
-        layout="@layout/layout_header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <ScrollView
         android:id="@+id/scrollViewEntries"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="100dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="60dp"
         android:focusable="auto"
@@ -34,6 +27,10 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:orientation="vertical">
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="90dp" />
 
             <TextView
                 android:id="@+id/keyNameText"
@@ -100,6 +97,12 @@
             android:textColor="@color/save_button"
             android:textSize="34sp" />
     </LinearLayout>
+
+    <include
+        layout="@layout/layout_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

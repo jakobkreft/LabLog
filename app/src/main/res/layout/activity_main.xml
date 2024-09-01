@@ -10,11 +10,6 @@
     tools:context=".MainActivity">
 
     <!-- Include the header layout -->
-    <include
-        layout="@layout/layout_header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- ScrollView to contain the card -->
     <ScrollView
@@ -22,7 +17,6 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="60dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="60dp"
         android:contentDescription="@string/summary_cards_description"
@@ -36,6 +30,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="60dp" />
 
             <include
                 layout="@layout/layout_latest_entries_card"
@@ -71,6 +69,12 @@
     </ScrollView>
 
     <!-- Include the footer layout -->
+    <include
+        layout="@layout/layout_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <include
         layout="@layout/layout_footer"
         android:layout_width="match_parent"
