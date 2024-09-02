@@ -8,6 +8,9 @@
     <color name="colorBoolean">#E44BFF</color> <!-- Purple -->
     <color name="colorImage">#FF594D</color> <!-- Red -->
     <color name="colorFloat">#FF94B8</color> <!-- Yellow -->
-    <color name="colorString">#FFED53</color> <!-- Pink -->
+    <color name="colorString">#FFED53</color>
+    <color name="dark_card_bg">#262626</color> <!-- Pink -->
+    <color name="light_gray">#9E9E9E</color> <!-- Pink -->
+    <color name="light_green">#E4FFE0</color> <!-- Pink -->
 
 </resources>

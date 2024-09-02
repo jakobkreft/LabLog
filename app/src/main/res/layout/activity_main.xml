@@ -12,6 +12,7 @@
     <!-- Include the header layout -->
 
     <!-- ScrollView to contain the card -->
+
     <ScrollView
         android:id="@+id/scrollView2"
         android:layout_width="0dp"
@@ -34,41 +35,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp" />
 
-            <include
-                layout="@layout/layout_latest_entries_card"
+            <LinearLayout
+                android:id="@+id/LinearLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-            <include
-                layout="@layout/layout_latest_entries_card"
+            </LinearLayout>
+
+            <Space
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <include
-                layout="@layout/layout_latest_entries_card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <include
-                layout="@layout/layout_latest_entries_card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <include
-                layout="@layout/layout_latest_entries_card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <include
-                layout="@layout/layout_latest_entries_card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
+                android:layout_height="90dp" />
         </LinearLayout>
     </ScrollView>
 
     <!-- Include the footer layout -->
     <include
+        android:id="@+id/header"
         layout="@layout/layout_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

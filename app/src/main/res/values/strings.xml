@@ -26,6 +26,9 @@
     <string name="timestampText">Timestamp</string>
     <string name="save">Save</string>
     <string name="payloadimage">payloadImage</string>
+    <string name="last_entry">Last entry</string>
+    <string name="recent_entries">Recent entries</string>
+    <string name="load_all">Load all …</string>
 
     <string-array name="key_type_options">
         <item>No Type</item>
