@@ -25,6 +25,7 @@
     <string name="captured_image">captured Image</string>
     <string name="timestampText">Timestamp</string>
     <string name="save">Save</string>
+    <string name="payloadimage">payloadImage</string>
 
     <string-array name="key_type_options">
         <item>No Type</item>

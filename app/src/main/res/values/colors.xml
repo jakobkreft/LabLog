@@ -2,6 +2,6 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="footer">#504B4B4B</color>
+    <color name="footer">#C0000000</color>
     <color name="save_button">#FFF7AC</color>
 </resources>

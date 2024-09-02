@@ -1,18 +1,17 @@
 package si.uni_lj.fe.lablog;
 
 import android.Manifest;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputType;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,18 +28,27 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import si.uni_lj.fe.lablog.data.AppDatabase;
+import si.uni_lj.fe.lablog.data.Entry;
+import si.uni_lj.fe.lablog.data.EntryDao;
 
 public class NewEntryActivity extends AppCompatActivity {
 
     private LinearLayout linearLayout;
     private LayoutInflater inflater;
     private ArrayList<String> selectedKeysList; // Store the selected keys
-    private Uri imageUri; // To hold the URI of the captured image
     private String currentKeyForImage; // To store the current key for which image is being taken
+    private HashMap<String, Bitmap> imageBitmapMap = new HashMap<>(); // Store images associated with their keys
 
     // Launcher to start RecentKeysActivity and handle the result
     private final ActivityResultLauncher<Intent> selectKeyLauncher =
@@ -63,13 +71,17 @@ public class NewEntryActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> takePictureLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
-                        if (result.getResultCode() == RESULT_OK) {
-                            // Display the captured image in the appropriate ImageButton
+                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                            // Retrieve the captured image as a Bitmap
+                            Bitmap imageBitmap = (Bitmap) result.getData().getExtras().get("data");
+
+                            // Store the Bitmap in the HashMap using the key
+                            imageBitmapMap.put(currentKeyForImage, imageBitmap);
+
+                            // Display the image in the corresponding ImageButton
                             ImageButton imageButton = linearLayout.findViewWithTag(currentKeyForImage); // Find ImageButton by tag
-                            if (imageButton != null && imageUri != null) {
-                                imageButton.setImageURI(imageUri);
-
-
+                            if (imageButton != null && imageBitmap != null) {
+                                imageButton.setImageBitmap(imageBitmap);
 
                                 // Update ImageButton to match_parent width and wrap_content height
                                 imageButton.setScaleType(ImageButton.ScaleType.FIT_CENTER); // Optional, to make the image scale properly
@@ -77,7 +89,6 @@ public class NewEntryActivity extends AppCompatActivity {
                                 imageButton.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
                                 imageButton.setAdjustViewBounds(true); // Ensure the image scales within the new bounds
                                 imageButton.setBackground(ContextCompat.getDrawable(this, R.color.black));
-
                             } else {
                                 Toast.makeText(this, "Failed to display image", Toast.LENGTH_SHORT).show();
                             }
@@ -142,6 +153,10 @@ public class NewEntryActivity extends AppCompatActivity {
             intent.putStringArrayListExtra("selectedKeys", selectedKeysList);
             selectKeyLauncher.launch(intent);
         });
+
+        // Set up the Save button functionality
+        View saveButton = findViewById(R.id.SaveEntryButton);
+        saveButton.setOnClickListener(v -> saveEntry());
     }
 
     private void createKeyCard(String keyName, String keyType) {
@@ -215,15 +230,6 @@ public class NewEntryActivity extends AppCompatActivity {
         } else {
             // Launch the camera intent
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-            // Prepare the URI for storing the image
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.TITLE, "New Picture");
-            values.put(MediaStore.Images.Media.DESCRIPTION, "From the Camera");
-            imageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-
-            // Set the image URI as the output for the camera intent
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
             takePictureLauncher.launch(cameraIntent);
         }
     }
@@ -237,6 +243,58 @@ public class NewEntryActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    private void saveEntry() {
+        try {
+            JSONObject jsonPayload = new JSONObject();
+
+            // Loop through each selected key and retrieve the corresponding value
+            for (String key : selectedKeysList) {
+                View keyCardView = linearLayout.findViewWithTag(key);
+
+                if (keyCardView != null) {
+                    if (keyCardView.findViewById(R.id.textInputEditText) != null) {
+                        TextInputEditText editText = keyCardView.findViewById(R.id.textInputEditText);
+                        String value = editText.getText().toString();
+                        jsonPayload.put(key, value);
+                    } else if (keyCardView.findViewById(R.id.checkBox2) != null) {
+                        CheckBox checkBox = keyCardView.findViewById(R.id.checkBox2);
+                        boolean value = checkBox.isChecked();
+                        jsonPayload.put(key, value);
+                    } else if (keyCardView.findViewById(R.id.imageButton) != null) {
+                        Bitmap bitmap = imageBitmapMap.get(key);
+                        if (bitmap != null) {
+                            // Convert the Bitmap to base64
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                            byte[] byteArray = baos.toByteArray();
+                            String base64Image = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                            jsonPayload.put(key, base64Image);
+                        }
+                    }
+                }
+            }
+
+            // Create a new entry with the payload and current timestamp
+            Entry entry = new Entry();
+            entry.payload = jsonPayload.toString();
+            entry.timestamp = System.currentTimeMillis();
+
+            // Insert the entry into the database
+            AppDatabase db = MyApp.getDatabase();
+            EntryDao entryDao = db.entryDao();
+            new Thread(() -> entryDao.insertEntry(entry)).start();
+
+            // Notify the user of success
+            Toast.makeText(this, "Entry saved successfully!", Toast.LENGTH_SHORT).show();
+
+            // Clear the form or close the activity as needed
+            finish();
+
+        } catch (JSONException e) {
+            Toast.makeText(this, "Failed to save entry: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }
