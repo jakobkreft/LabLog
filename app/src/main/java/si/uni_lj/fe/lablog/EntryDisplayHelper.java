@@ -121,7 +121,7 @@ public class EntryDisplayHelper {
                 // back to white after its done
                 TextView keyTextView = (TextView) inflater.inflate(R.layout.key_text_view_layout, payloadContainer, false);
                 GradientDrawable background = (GradientDrawable) keyTextView.getBackground();
-                background.setStroke(widthStroke, ContextCompat.getColor(context , android.R.color.white));
+                background.setStroke(widthStroke, ContextCompat.getColor(context, android.R.color.white));
 
 
 

@@ -20,7 +20,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Inside the CardView, add a LinearLayout or ConstraintLayout to hold the entries -->
+
 
         <LinearLayout
             android:id="@+id/payloadContainer"
@@ -44,7 +44,19 @@
                 android:paddingVertical="10dp"
                 android:text="@string/timestamp"
                 android:textColor="@color/save_button"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:visibility="visible" />
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/flexboxContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:alignContent="stretch"
+                app:alignItems="stretch"
+                app:flexWrap="wrap">
+
+
+            </com.google.android.flexbox.FlexboxLayout>
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

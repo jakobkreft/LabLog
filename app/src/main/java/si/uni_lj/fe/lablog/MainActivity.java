@@ -12,13 +12,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
-import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.flexbox.FlexboxLayout;
 
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -45,8 +44,10 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            v.setPadding(insets.getInsets(WindowInsetsCompat.Type.systemBars()).left,
+                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
+                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).right,
+                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom);
             return insets;
         });
 
@@ -61,27 +62,32 @@ public class MainActivity extends AppCompatActivity {
         // Initialize ExecutorService for background tasks
         executorService = Executors.newSingleThreadExecutor();
 
-        // Load the timestamps from the database and display them in the card
-        loadAndDisplayTimestamps();
-
-        // Load and display the latest entry
-        loadAndDisplayLatestEntry();
-
         // Hide the back button in MainActivity
         View backButton = findViewById(R.id.backButton);
         backButton.setVisibility(View.GONE);
 
-        // Find the addButton by its ID
-        View addButton = findViewById(R.id.addButton);
-
         // Set an OnClickListener to the addButton
+        View addButton = findViewById(R.id.addButton);
         addButton.setOnClickListener(v -> {
-            // Create an Intent to navigate to NewEntryActivity
             Intent intent = new Intent(MainActivity.this, NewEntryActivity.class);
-            // Start the activity
             startActivity(intent);
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Clear the current views in the LinearLayout to prevent duplicates
+        linearLayout.removeAllViews();
+
+        // Reload the timestamps from the database and display them in the card
+        loadAndDisplayTimestamps();
+
+        // Reload and display the latest entry
+        loadAndDisplayLatestEntry();
+    }
+
 
     private void loadAndDisplayLatestEntry() {
         executorService.execute(() -> {
@@ -143,21 +149,27 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 });
 
-                // Get the container where payloads will be added
-                LinearLayout payloadContainer = cardView.findViewById(R.id.payloadContainer);
+                // Get the FlexboxLayout where payloads will be added
+                FlexboxLayout flexboxContainer = cardView.findViewById(R.id.flexboxContainer);
 
                 // Clear any existing views in the container
-                payloadContainer.removeAllViews();
+                flexboxContainer.removeAllViews();
 
-                // Determine how many entries to show (up to 5)
-                int entriesToShow = Math.min(entries.size(), 5);
+                // Hide the timestampTextView specifically for this card
+                TextView timestampTextView = cardView.findViewById(R.id.timestampTextView);
+                if (timestampTextView != null) {
+                    timestampTextView.setVisibility(View.GONE);
+                }
+
+                // Determine how many entries to show (up to 15)
+                int entriesToShow = Math.min(entries.size(), 15);
 
                 // Iterate through the latest 5 entries and create a TextView for each payload snippet
                 for (int i = 0; i < entriesToShow; i++) {
                     Entry entry = entries.get(i);
 
                     // Inflate the TextView from the entry_card layout
-                    TextView payloadTextView = (TextView) inflater.inflate(R.layout.quick_value_view, payloadContainer, false);
+                    TextView payloadTextView = (TextView) inflater.inflate(R.layout.quick_value_view, flexboxContainer, false);
 
                     // Create a snippet of the payload with a maximum of 40 characters
                     StringBuilder snippetBuilder = new StringBuilder();
@@ -177,8 +189,8 @@ public class MainActivity extends AppCompatActivity {
                                 value = "(img)";
                             } else {
                                 // Truncate the value to 10 characters max
-                                if (value.length() > 40) {
-                                    value = value.substring(0, 30);
+                                if (value.length() > 14) {
+                                    value = value.substring(0, 14) + "...";
                                 }
                             }
 
@@ -204,11 +216,11 @@ public class MainActivity extends AppCompatActivity {
                     // Set the text to the TextView
                     payloadTextView.setText(snippetBuilder.toString());
 
-                    // Add the TextView to the container
-                    payloadContainer.addView(payloadTextView);
+                    // Add the TextView to the FlexboxLayout
+                    flexboxContainer.addView(payloadTextView);
                 }
 
-                if (entries.size() > 5) {
+                if (entries.size() > 15) {
                     // Create the "See all..." TextView programmatically
                     TextView seeAllTextView = new TextView(MainActivity.this);
 
@@ -219,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
                     seeAllTextView.setTextColor(ContextCompat.getColor(this, android.R.color.white));
 
                     // Set the text size (optional)
-                    seeAllTextView.setTextSize(16); // You can adjust the size as needed
+                    seeAllTextView.setTextSize(16);
 
                     // Set padding (optional)
                     seeAllTextView.setPadding(16, 8, 16, 8);
@@ -230,16 +242,14 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(intent);
                     });
 
-                    // Add the "See all..." TextView to the container
-                    payloadContainer.addView(seeAllTextView);
+                    // Add the "See all..." TextView to the FlexboxLayout
+                    flexboxContainer.addView(seeAllTextView);
                 }
-
 
                 // Add the populated card to the LinearLayout
                 linearLayout.addView(cardView);
             });
         });
     }
-
 
 }
