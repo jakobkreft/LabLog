@@ -4,4 +4,10 @@
     <color name="white">#FFFFFFFF</color>
     <color name="footer">#C0000000</color>
     <color name="save_button">#FFF7AC</color>
+    <color name="colorInteger">#47AEFF</color> <!-- Blue -->
+    <color name="colorBoolean">#E44BFF</color> <!-- Purple -->
+    <color name="colorImage">#FF594D</color> <!-- Red -->
+    <color name="colorFloat">#FF94B8</color> <!-- Yellow -->
+    <color name="colorString">#FFED53</color> <!-- Pink -->
+
 </resources>

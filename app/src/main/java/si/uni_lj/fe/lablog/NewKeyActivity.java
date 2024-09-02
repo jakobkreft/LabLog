@@ -82,20 +82,29 @@ public class NewKeyActivity extends AppCompatActivity {
                 AppDatabase db = MyApp.getDatabase();
                 KeyDao keyDao = db.keyDao();
 
-                // Create a new Key object
-                Key newKey = new Key();
-                newKey.name = keyName;
-                newKey.type = keyType;
+                // Check if a key with the same name already exists
+                Key existingKey = keyDao.getKeyByName(keyName);
+                if (existingKey != null) {
+                    // Key with the same name exists, show a Toast and do not proceed
+                    runOnUiThread(() -> Toast.makeText(NewKeyActivity.this,
+                            "Key with the same name already exists!",
+                            Toast.LENGTH_SHORT).show());
+                } else {
+                    // Create a new Key object
+                    Key newKey = new Key();
+                    newKey.name = keyName;
+                    newKey.type = keyType;
 
-                // Insert the new key into the database
-                keyDao.insertKey(newKey);
+                    // Insert the new key into the database
+                    keyDao.insertKey(newKey);
 
-                // Show success toast on the UI thread
-                runOnUiThread(() -> Toast.makeText(NewKeyActivity.this,
-                        keyName + " key of type " + keyType + " saved.",
-                        Toast.LENGTH_SHORT).show());
-                // Go back to the previous activity
-                finish();
+                    // Show success toast on the UI thread
+                    runOnUiThread(() -> Toast.makeText(NewKeyActivity.this,
+                            keyName + " key of type " + keyType + " saved.",
+                            Toast.LENGTH_SHORT).show());
+                    // Go back to the previous activity
+                    finish();
+                }
             }).start();
         });
     }

@@ -34,14 +34,16 @@
 
             <TextView
                 android:id="@+id/timestampTextView"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginBottom="8dp"
-                android:background="@drawable/rounded_background"
-                android:paddingHorizontal="8dp"
+                android:background="@drawable/timestamp_bg"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
                 android:paddingVertical="10dp"
                 android:text="@string/timestamp"
-                android:textColor="@color/white"
+                android:textColor="@color/save_button"
                 android:textSize="16sp" />
 
         </LinearLayout>

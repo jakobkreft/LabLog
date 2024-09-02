@@ -3,6 +3,7 @@ package si.uni_lj.fe.lablog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -48,7 +49,7 @@ public class LatestEntryActivity extends AppCompatActivity {
     private ExecutorService executorService;
     private Handler mainHandler;
     private Map<String, String> keyTypeMap;  // Map to store key types
-
+    private final int widthStroke = 8;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,6 +91,18 @@ public class LatestEntryActivity extends AppCompatActivity {
             startActivity(intent);
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Clear the current entries in the LinearLayout
+        linearLayout.removeAllViews();
+
+        // Reload the entries and key types from the database
+        loadEntriesAndKeyTypes();
+    }
+
 
     private void loadEntriesAndKeyTypes() {
         executorService.execute(() -> {
@@ -137,20 +150,51 @@ public class LatestEntryActivity extends AppCompatActivity {
                         // Create a TextView for the key
                         TextView keyTextView = (TextView) inflater.inflate(R.layout.key_text_view_layout, payloadContainer, false);
                         keyTextView.setText(key);
-                        keyTextView.setTextColor(ContextCompat.getColor(this, android.R.color.white)); // Set text color to white
+
+                        GradientDrawable background = (GradientDrawable) keyTextView.getBackground();
+
+                        // Set background color based on key type
+
+                        switch (type.toLowerCase()) {
+
+                            case "integer":
+                                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorInteger));
+                                break;
+                            case "boolean":
+                                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorBoolean));
+                                break;
+                            case "image":
+                                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorImage));
+                                break;
+                            case "float":
+                                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorFloat));
+                                break;
+                            case "string":
+                                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorString));
+                                break;
+                            default:
+                                background.setStroke(widthStroke, ContextCompat.getColor(this, android.R.color.white));
+                                break;
+                        }
 
                         // Create a TextView or ImageView for the value based on the type
                         if ("Image".equalsIgnoreCase(type)) {
                             // Decode the Base64 image and set it in the ImageView
                             byte[] decodedString = Base64.decode(valueStr, Base64.DEFAULT);
                             Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                            ImageView imageView = new ImageView(LatestEntryActivity.this);
+
+                            // Inflate the ImageView from the XML layout
+                            View imageLayout = LayoutInflater.from(LatestEntryActivity.this).inflate(R.layout.image_view_item, payloadContainer, false);
+                            ImageView imageView = imageLayout.findViewById(R.id.imageView);
+
+                            // Set the bitmap to the ImageView
                             imageView.setImageBitmap(decodedByte);
 
+                            // Add the key and image views to the container
                             payloadContainer.addView(keyTextView);
                             payloadContainer.addView(imageView);
-                            Log.d("iamgeiamge", "dela");
-                        } else {
+                        }
+                        else {
                             // Create a TextView for other types of values
                             TextView valueTextView = (TextView) inflater.inflate(R.layout.value_text_view_layout, payloadContainer, false);
                             valueTextView.setText(valueStr); // Set the text
@@ -166,6 +210,12 @@ public class LatestEntryActivity extends AppCompatActivity {
 
                 // Add the card to the LinearLayout
                 linearLayout.addView(cardView);
+
+                // back to white after its done
+                TextView keyTextView = (TextView) inflater.inflate(R.layout.key_text_view_layout, linearLayout, false);
+                GradientDrawable background = (GradientDrawable) keyTextView.getBackground();
+                background.setStroke(widthStroke, ContextCompat.getColor(this, android.R.color.white));
+
 
             } catch (Exception e) {
                 Log.e("LatestEntryActivity", "Error parsing entry: " + entry.id, e);

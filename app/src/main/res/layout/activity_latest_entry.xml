@@ -27,22 +27,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="100dp" />
 
+            <TextView
+                android:id="@+id/keyNameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp"
+                android:text="@string/latest_entries"
+                android:textColor="#C5C5C5"
+                android:textSize="20sp" />
+
             <LinearLayout
                 android:id="@+id/LinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
+                android:layout_margin="0dp"
                 android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/keyNameText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="8dp"
-                    android:text="@string/latest_entries"
-                    android:textColor="#C5C5C5"
-                    android:textSize="20sp" />
 
             </LinearLayout>
 

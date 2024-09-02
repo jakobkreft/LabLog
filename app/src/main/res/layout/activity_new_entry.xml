@@ -40,6 +40,7 @@
                     android:id="@+id/keyNameText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
                     android:paddingStart="8dp"
                     android:paddingEnd="8dp"
                     android:text="@string/new_entry"
@@ -53,20 +54,10 @@
                     android:orientation="vertical"></LinearLayout>
 
                 <TextView
-                    android:id="@+id/payloadText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:text="@string/payloadText"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp" />
-
-                <TextView
                     android:id="@+id/AddKey"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
+                    android:layout_margin="16dp"
                     android:background="@drawable/entries_rounded_background"
                     android:clickable="true"
                     android:focusable="true"
@@ -98,7 +89,7 @@
             android:id="@+id/SaveEntryButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16sp"
+            android:layout_marginHorizontal="24sp"
             android:background="@drawable/entries_rounded_background"
             android:text="@string/save"
             android:textAlignment="center"

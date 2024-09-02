@@ -4,10 +4,13 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputType;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
@@ -22,6 +25,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -29,6 +33,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,12 +49,12 @@ import si.uni_lj.fe.lablog.data.Entry;
 import si.uni_lj.fe.lablog.data.EntryDao;
 
 public class NewEntryActivity extends AppCompatActivity {
-
+    private Uri currentImageUri;
     private LinearLayout linearLayout;
     private LayoutInflater inflater;
     private ArrayList<String> selectedKeysList; // Store the selected keys
     private String currentKeyForImage; // To store the current key for which image is being taken
-    private HashMap<String, Bitmap> imageBitmapMap = new HashMap<>(); // Store images associated with their keys
+    private HashMap<String, Uri> imageUriMap = new HashMap<>(); // Store image URIs associated with their keys
 
     // Launcher to start RecentKeysActivity and handle the result
     private final ActivityResultLauncher<Intent> selectKeyLauncher =
@@ -67,28 +73,24 @@ public class NewEntryActivity extends AppCompatActivity {
                         }
                     });
 
-    // Launcher to handle the camera result
     private final ActivityResultLauncher<Intent> takePictureLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
-                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                            // Retrieve the captured image as a Bitmap
-                            Bitmap imageBitmap = (Bitmap) result.getData().getExtras().get("data");
-
-                            // Store the Bitmap in the HashMap using the key
-                            imageBitmapMap.put(currentKeyForImage, imageBitmap);
-
+                        if (result.getResultCode() == RESULT_OK) {
                             // Display the image in the corresponding ImageButton
-                            ImageButton imageButton = linearLayout.findViewWithTag(currentKeyForImage); // Find ImageButton by tag
-                            if (imageButton != null && imageBitmap != null) {
-                                imageButton.setImageBitmap(imageBitmap);
+                            ImageButton imageButton = linearLayout.findViewWithTag(currentKeyForImage);
+                            if (imageButton != null && currentImageUri != null) {
+                                imageButton.setImageURI(currentImageUri);
 
                                 // Update ImageButton to match_parent width and wrap_content height
-                                imageButton.setScaleType(ImageButton.ScaleType.FIT_CENTER); // Optional, to make the image scale properly
+                                imageButton.setScaleType(ImageButton.ScaleType.FIT_CENTER);
                                 imageButton.getLayoutParams().width = LinearLayout.LayoutParams.MATCH_PARENT;
                                 imageButton.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                                imageButton.setAdjustViewBounds(true); // Ensure the image scales within the new bounds
+                                imageButton.setAdjustViewBounds(true);
                                 imageButton.setBackground(ContextCompat.getDrawable(this, R.color.black));
+
+                                // Store the URI in the map
+                                imageUriMap.put(currentKeyForImage, currentImageUri);
                             } else {
                                 Toast.makeText(this, "Failed to display image", Toast.LENGTH_SHORT).show();
                             }
@@ -228,8 +230,26 @@ public class NewEntryActivity extends AppCompatActivity {
             // Request the camera permission
             requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
         } else {
-            // Launch the camera intent
+            // Create a file to store the image
+            File imageFile = new File(getExternalFilesDir(null), "image_" + System.currentTimeMillis() + ".jpg");
+
+            // Ensure that the file was successfully created
+            try {
+                if (!imageFile.exists()) {
+                    imageFile.createNewFile();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Failed to create image file", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Save the URI for later use in the launcher callback
+            currentImageUri = FileProvider.getUriForFile(this, "si.uni_lj.fe.lablog.fileprovider", imageFile);
+
+            // Launch the camera intent with the URI
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentImageUri);
             takePictureLauncher.launch(cameraIntent);
         }
     }
@@ -264,14 +284,20 @@ public class NewEntryActivity extends AppCompatActivity {
                         boolean value = checkBox.isChecked();
                         jsonPayload.put(key, value);
                     } else if (keyCardView.findViewById(R.id.imageButton) != null) {
-                        Bitmap bitmap = imageBitmapMap.get(key);
-                        if (bitmap != null) {
-                            // Convert the Bitmap to base64
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-                            byte[] byteArray = baos.toByteArray();
-                            String base64Image = Base64.encodeToString(byteArray, Base64.DEFAULT);
-                            jsonPayload.put(key, base64Image);
+                        Uri imageUri = imageUriMap.get(key);
+                        if (imageUri != null) {
+                            // Convert the image URI to a Base64 encoded string
+                            try {
+                                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 40, baos);
+                                byte[] byteArray = baos.toByteArray();
+                                String base64Image = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                                jsonPayload.put(key, base64Image);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Toast.makeText(this, "Failed to encode image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
                 }
