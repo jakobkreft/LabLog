@@ -49,7 +49,7 @@ public class NewKeyActivity extends AppCompatActivity {
         backButton.setOnClickListener(v -> finish());
 
         // Find the SaveKeyButton TextView by its ID
-        TextView saveKeyButton = findViewById(R.id.SaveKeyButton);
+        TextView saveKeyButton = findViewById(R.id.SaveEntryButton);
 
         // Set an OnClickListener on the SaveKeyButton
         saveKeyButton.setOnClickListener(v -> {
