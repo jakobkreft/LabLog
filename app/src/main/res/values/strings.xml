@@ -29,6 +29,9 @@
     <string name="last_entry">Last entry</string>
     <string name="recent_entries">Recent entries</string>
     <string name="load_all">Load all …</string>
+    <string name="search_icon">search icon</string>
+    <string name="search_hint">value, description...</string>
+    <string name="date_icon">date icon</string>
 
     <string-array name="key_type_options">
         <item>No Type</item>

@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
                     insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom);
             return insets;
         });
-
         // Initialize the LinearLayout and LayoutInflater
         linearLayout = findViewById(R.id.LinearLayout);
         inflater = LayoutInflater.from(this);
@@ -65,6 +64,13 @@ public class MainActivity extends AppCompatActivity {
         // Hide the back button in MainActivity
         View backButton = findViewById(R.id.backButton);
         backButton.setVisibility(View.GONE);
+
+        // Set an OnClickListener to the searchButton
+        View searchButton = findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
 
         // Set an OnClickListener to the addButton
         View addButton = findViewById(R.id.addButton);
