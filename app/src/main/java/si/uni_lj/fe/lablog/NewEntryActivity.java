@@ -2,6 +2,7 @@ package si.uni_lj.fe.lablog;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -34,13 +35,21 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -91,11 +100,14 @@ public class NewEntryActivity extends AppCompatActivity {
 
                                 // Store the URI in the map
                                 imageUriMap.put(currentKeyForImage, currentImageUri);
+                                downscaleImage();
                             } else {
                                 Toast.makeText(this, "Failed to display image", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
+
+    private MQTTHelper mqttHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +119,9 @@ public class NewEntryActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Initialize MQTT Helper
+        mqttHelper = new MQTTHelper(this);
 
         // Initialize the selected keys list
         selectedKeysList = new ArrayList<>();
@@ -124,7 +139,7 @@ public class NewEntryActivity extends AppCompatActivity {
 
         // Set the current timestamp in the textValue TextView
         TextView textValueTextView = timestampCardView.findViewById(R.id.textValue);
-        String currentTimestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
+        String currentTimestamp = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(new Date());
         textValueTextView.setText(currentTimestamp);
 
         // Hide other elements that are not needed for the timestamp card
@@ -135,7 +150,7 @@ public class NewEntryActivity extends AppCompatActivity {
         // Set an OnClickListener on the timestamp card to update the timestamp
         timestampCardView.setOnClickListener(v -> {
             // Update the timestamp to the current time
-            String newTimestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
+            String newTimestamp = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(new Date());
             textValueTextView.setText(newTimestamp);
         });
 
@@ -223,46 +238,101 @@ public class NewEntryActivity extends AppCompatActivity {
         // Add the new key card to the LinearLayout
         linearLayout.addView(keyCardView);
     }
-
     private void launchCamera() {
         // Check if the camera permission is granted
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             // Request the camera permission
             requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
         } else {
-            // Create a file to store the image
-            File imageFile = new File(getExternalFilesDir(null), "image_" + System.currentTimeMillis() + ".jpg");
-
-            // Ensure that the file was successfully created
             try {
-                if (!imageFile.exists()) {
-                    imageFile.createNewFile();
+                // Create a file to store the image
+                File imageFile = createImageFile();
+                if (imageFile != null) {
+                    // Save the URI for later use in the launcher callback
+                    currentImageUri = FileProvider.getUriForFile(this, "si.uni_lj.fe.lablog.fileprovider", imageFile);
+
+                    // Launch the camera intent with the URI
+                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentImageUri);
+                    takePictureLauncher.launch(cameraIntent);
+                } else {
+                    Toast.makeText(this, "Failed to create image file", Toast.LENGTH_SHORT).show();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Failed to create image file", Toast.LENGTH_SHORT).show();
-                return;
+                Toast.makeText(this, "Failed to create image file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-
-            // Save the URI for later use in the launcher callback
-            currentImageUri = FileProvider.getUriForFile(this, "si.uni_lj.fe.lablog.fileprovider", imageFile);
-
-            // Launch the camera intent with the URI
-            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentImageUri);
-            takePictureLauncher.launch(cameraIntent);
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults); // Ensure the superclass method is called
-        if (requestCode == 100) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                launchCamera();
-            } else {
-                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+    private File createImageFile() throws IOException {
+        // Create an image file name with a timestamp
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(null);
+        return File.createTempFile(imageFileName, ".jpg", storageDir);
+    }
+
+    private void downscaleImage() {
+        try {
+            // Check if the URI and file are valid
+            if (currentImageUri == null) {
+                throw new IOException("Invalid image URI.");
             }
+
+            // Load the full-size image from the URI
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            Bitmap originalBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(currentImageUri), null, options);
+
+            if (originalBitmap == null) {
+                throw new IOException("Failed to decode image from URI.");
+            }
+
+            // Calculate aspect ratio-preserving dimensions for HD resolution
+            int originalWidth = originalBitmap.getWidth();
+            int originalHeight = originalBitmap.getHeight();
+            int newWidth = 1000; // target width
+            int newHeight = (originalHeight * newWidth) / originalWidth;
+
+            // If the height exceeds 1080, downscale using height as the reference
+            if (newHeight > 1000) {
+                newHeight = 1000; // target height
+                newWidth = (originalWidth * newHeight) / originalHeight;
+            }
+
+            // Downscale the bitmap
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
+
+            // Save the downscaled image back to the file
+            try (OutputStream out = getContentResolver().openOutputStream(currentImageUri)) {
+                if (out != null) {
+                    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 70, out); // Use JPEG format with 85% quality
+                } else {
+                    throw new IOException("Failed to get output stream.");
+                }
+            }
+
+            // Update the image in the ImageButton after downscaling
+            ImageButton imageButton = linearLayout.findViewWithTag(currentKeyForImage);
+            if (imageButton != null) {
+                imageButton.setImageBitmap(scaledBitmap);
+
+                // Adjust layout settings for the image button
+                imageButton.setScaleType(ImageButton.ScaleType.FIT_CENTER);
+                imageButton.getLayoutParams().width = LinearLayout.LayoutParams.MATCH_PARENT;
+                imageButton.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                imageButton.setAdjustViewBounds(true);
+                imageButton.setBackground(ContextCompat.getDrawable(this, R.color.black));
+            }
+
+            Toast.makeText(this, "Image captured and downscaled successfully", Toast.LENGTH_SHORT).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error processing image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Unexpected error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -313,6 +383,9 @@ public class NewEntryActivity extends AppCompatActivity {
             EntryDao entryDao = db.entryDao();
             new Thread(() -> entryDao.insertEntry(entry)).start();
 
+            // Publish the entry to MQTT broker using MQTTHelper
+            mqttHelper.publishMessage(entry.timestamp + entry.payload);
+
             // Notify the user of success
             Toast.makeText(this, "Entry saved successfully!", Toast.LENGTH_SHORT).show();
 
@@ -324,3 +397,4 @@ public class NewEntryActivity extends AppCompatActivity {
         }
     }
 }
+

@@ -63,7 +63,7 @@ public class EntryDisplayHelper {
 
                 // Set the timestamp
                 TextView timestampTextView = cardView.findViewById(R.id.timestampTextView);
-                String formattedTimestamp = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+                String formattedTimestamp = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault())
                         .format(new Date(entry.timestamp));
                 timestampTextView.setText(formattedTimestamp);
 

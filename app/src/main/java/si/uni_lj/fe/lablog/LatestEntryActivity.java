@@ -74,6 +74,20 @@ public class LatestEntryActivity extends AppCompatActivity {
             Intent intent = new Intent(LatestEntryActivity.this, NewEntryActivity.class);
             startActivity(intent);
         });
+
+        // Set an OnClickListener to the searchButton
+        View searchButton = findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(v -> {
+            Intent intent = new Intent(LatestEntryActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
+
+        // Set an OnClickListener to the searchButton
+        View settingsButton = findViewById(R.id.settingsButton);
+        settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(LatestEntryActivity.this, SettingsActivity.class);
+            startActivity(intent);
+        });
     }
 
     @Override

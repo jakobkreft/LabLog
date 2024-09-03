@@ -72,6 +72,13 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Set an OnClickListener to the searchButton
+        View settingsButton = findViewById(R.id.settingsButton);
+        settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(intent);
+        });
+
         // Set an OnClickListener to the addButton
         View addButton = findViewById(R.id.addButton);
         addButton.setOnClickListener(v -> {

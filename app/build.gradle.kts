@@ -32,12 +32,13 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.org.eclipse.paho.client.mqttv3)
+    implementation(libs.org.eclipse.paho.android.service)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation("com.google.android.flexbox:flexbox:3.0.0")
+    implementation(libs.flexbox)
     implementation(libs.room.common)
     implementation(libs.room.runtime)
     testImplementation(libs.junit)

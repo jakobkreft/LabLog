@@ -2,12 +2,17 @@ package si.uni_lj.fe.lablog;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Button;
 
@@ -24,6 +29,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +42,8 @@ import si.uni_lj.fe.lablog.data.EntryDao;
 import si.uni_lj.fe.lablog.data.KeyDao;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+
+import com.google.android.material.textfield.TextInputEditText;
 
 public class SearchActivity extends AppCompatActivity {
 
@@ -102,6 +110,25 @@ public class SearchActivity extends AppCompatActivity {
         // Set date pickers
         startDateButton.setOnClickListener(v -> showDateTimePicker(startDateButton, true));
         endDateButton.setOnClickListener(v -> showDateTimePicker(endDateButton, false));
+
+        TextInputEditText searchInput = findViewById(R.id.searchInput);
+
+        // Set up the listener for the Done action on the keyboard
+        searchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    performSearch();  // Call your search function here
+
+                    // Hide the keyboard
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+                    return true;  // Consume the event
+                }
+                return false;  // Don't consume the event if it's not the Done action
+            }
+        });
     }
 
     private void showDateTimePicker(Button button, boolean isStartDate) {
@@ -133,12 +160,12 @@ public class SearchActivity extends AppCompatActivity {
             keyTypeMap = helper.loadKeyTypeMap(keyDao);
         });
     }
-
     private void performSearch() {
-        String searchQuery = searchInput.getText().toString().trim();
+        String searchQuery = searchInput.getText().toString().trim().toLowerCase();
 
-        if (searchQuery.isEmpty()) {
-            Toast.makeText(this, "Please enter a search term", Toast.LENGTH_SHORT).show();
+        // Check if both the search input and the time frame are empty
+        if (searchQuery.isEmpty() && startTimestamp == 0 && endTimestamp == Long.MAX_VALUE) {
+            Toast.makeText(this, "Please enter a search term or select timeframe", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -152,27 +179,47 @@ public class SearchActivity extends AppCompatActivity {
                 try {
                     // Check if the entry's timestamp is within the selected range
                     if (entry.timestamp >= startTimestamp && entry.timestamp <= endTimestamp) {
-                        JSONObject jsonObject = new JSONObject(entry.payload);
                         boolean matchFound = false;
 
-                        // Iterate through each key-value pair in the JSON object
-                        for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
-                            String key = it.next();
-                            String valueStr = jsonObject.getString(key);
+                        // If searchQuery is not empty, perform search within the entry's data
+                        if (!searchQuery.isEmpty()) {
+                            JSONObject jsonObject = new JSONObject(entry.payload);
 
-                            // Get the type of the key from the map
-                            String type = keyTypeMap.get(key);
+                            // Check if the timestamp matches the search query
+                            String formattedTimestamp = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(new Date(entry.timestamp));
+                            if (formattedTimestamp.toLowerCase().contains(searchQuery)) {
+                                matchFound = true;
+                            }
 
-                            // Skip image types for searching
-                            if (type != null && !"Image".equalsIgnoreCase(type)) {
-                                if (valueStr.contains(searchQuery)) {
-                                    matchFound = true;
-                                    break;
+                            // Iterate through each key-value pair in the JSON object
+                            for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
+                                String key = it.next();
+                                String valueStr = jsonObject.getString(key);
+
+                                // Get the type of the key from the map
+                                String type = keyTypeMap.get(key);
+
+                                // Skip image types for searching
+                                if (type != null && !"Image".equalsIgnoreCase(type)) {
+                                    // Check if the key matches the search query
+                                    if (key.toLowerCase().contains(searchQuery)) {
+                                        matchFound = true;
+                                        break;
+                                    }
+
+                                    // Check if the value matches the search query
+                                    if (valueStr.toLowerCase().contains(searchQuery)) {
+                                        matchFound = true;
+                                        break;
+                                    }
                                 }
                             }
+                        } else {
+                            // If no searchQuery, just match based on time range
+                            matchFound = true;
                         }
 
-                        // If a match is found, add the entry to the matchedEntries list
+                        // If a match is found (based on time or search query), add the entry to the matchedEntries list
                         if (matchFound) {
                             matchedEntries.add(entry);
                         }
@@ -186,7 +233,6 @@ public class SearchActivity extends AppCompatActivity {
             runOnUiThread(() -> displaySearchResults(matchedEntries));
         });
     }
-
 
     private void displaySearchResults(List<Entry> matchedEntries) {
         // Clear previous search results
