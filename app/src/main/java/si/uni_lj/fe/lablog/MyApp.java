@@ -31,7 +31,7 @@ public class MyApp extends Application {
         // Check if the MQTT settings are already initialized
         if (!sharedPreferences.contains("mqtt_broker")) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("mqtt_broker", "broker.emqx.io");
+            editor.putString("mqtt_broker", "tcp://broker.emqx.io:1883");
             editor.putString("mqtt_topic", "Lab/Log/data");
             editor.putBoolean("mqtt_enabled", false);
             editor.apply(); // Save the default values
