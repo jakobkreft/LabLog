@@ -129,6 +129,8 @@ public class SearchActivity extends AppCompatActivity {
                 return false;  // Don't consume the event if it's not the Done action
             }
         });
+
+        performSearch();
     }
 
     private void showDateTimePicker(Button button, boolean isStartDate) {
@@ -163,22 +165,19 @@ public class SearchActivity extends AppCompatActivity {
     private void performSearch() {
         String searchQuery = searchInput.getText().toString().trim().toLowerCase();
 
-        // Check if both the search input and the time frame are empty
-        if (searchQuery.isEmpty() && startTimestamp == 0 && endTimestamp == Long.MAX_VALUE) {
-            Toast.makeText(this, "Please enter a search term or select timeframe", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         executorService.execute(() -> {
             // Fetch all entries from the database
             List<Entry> allEntries = entryDao.getAllEntries();
             List<Entry> matchedEntries = new ArrayList<>();
 
+            // If no search query and no date range is specified, show all entries
+            boolean noFiltersApplied = searchQuery.isEmpty() && startTimestamp == 0 && endTimestamp == Long.MAX_VALUE;
+
             // Iterate through all entries and check for matches
             for (Entry entry : allEntries) {
                 try {
                     // Check if the entry's timestamp is within the selected range
-                    if (entry.timestamp >= startTimestamp && entry.timestamp <= endTimestamp) {
+                    if (noFiltersApplied || (entry.timestamp >= startTimestamp && entry.timestamp <= endTimestamp)) {
                         boolean matchFound = false;
 
                         // If searchQuery is not empty, perform search within the entry's data
@@ -199,14 +198,14 @@ public class SearchActivity extends AppCompatActivity {
                                 // Get the type of the key from the map
                                 String type = keyTypeMap.get(key);
 
-                                // Skip image types for searching
-                                if (type != null && !"Image".equalsIgnoreCase(type)) {
-                                    // Check if the key matches the search query
-                                    if (key.toLowerCase().contains(searchQuery)) {
-                                        matchFound = true;
-                                        break;
-                                    }
+                                // Key names should always be searchable, regardless of the type
+                                if (key.toLowerCase().contains(searchQuery)) {
+                                    matchFound = true;
+                                    break;
+                                }
 
+                                // Skip image values for searching but include key names
+                                if (type != null && !"Image".equalsIgnoreCase(type)) {
                                     // Check if the value matches the search query
                                     if (valueStr.toLowerCase().contains(searchQuery)) {
                                         matchFound = true;
@@ -215,7 +214,7 @@ public class SearchActivity extends AppCompatActivity {
                                 }
                             }
                         } else {
-                            // If no searchQuery, just match based on time range
+                            // If no search query, match by time range or no filters applied
                             matchFound = true;
                         }
 
@@ -233,6 +232,8 @@ public class SearchActivity extends AppCompatActivity {
             runOnUiThread(() -> displaySearchResults(matchedEntries));
         });
     }
+
+
 
     private void displaySearchResults(List<Entry> matchedEntries) {
         // Clear previous search results

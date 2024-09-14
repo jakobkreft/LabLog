@@ -1,6 +1,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
 
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
     <!-- removed from above, because it was not used xmlns:tools="http://schemas.android.com/tools" -->
@@ -51,16 +52,86 @@
                 android:textSize="16sp"
                 android:visibility="visible" />
 
+
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/flexboxContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:visibility="visible"
+                app:alignContent="stretch"
+                app:alignItems="stretch"
+                app:flexWrap="wrap"></com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/flexboxLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/rounded_background"
+                android:visibility="gone"
                 app:alignContent="stretch"
                 app:alignItems="stretch"
                 app:flexWrap="wrap">
 
+                <TextView
+                    android:id="@+id/optionsText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:layout_marginHorizontal="16dp"
+                    android:text="Entry Options"
+                    android:textColor="#8AFFFFFF"
+                    android:textSize="16sp" />
+
+
+                <Button
+                    android:id="@+id/ArchiveButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/entries_rounded_background"
+                    android:text="Archive"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/EditButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/entries_rounded_background"
+                    android:text="Edit"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/DeleteButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/entries_rounded_background"
+                    android:text="Delete"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/DuplicateButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/entries_rounded_background"
+                    android:text="Duplicate"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/ResendButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/entries_rounded_background"
+                    android:text="Resend"
+                    android:textColor="#FFFFFF" />
+
 
             </com.google.android.flexbox.FlexboxLayout>
+
+
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

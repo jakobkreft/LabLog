@@ -374,27 +374,23 @@ public class NewEntryActivity extends AppCompatActivity {
             }
 
             // Create a new entry with the payload and current timestamp
-            Entry entry = new Entry();
-            entry.payload = jsonPayload.toString();
-            entry.timestamp = System.currentTimeMillis();
+            String payload = jsonPayload.toString();
+            long timestamp = System.currentTimeMillis();
 
-            // Insert the entry into the database
-            AppDatabase db = MyApp.getDatabase();
-            EntryDao entryDao = db.entryDao();
-            new Thread(() -> entryDao.insertEntry(entry)).start();
+            // Start StatusActivity and pass the fields separately
+            Intent statusIntent = new Intent(this, StatusActivity.class);
+            statusIntent.putExtra("payload", payload);
+            statusIntent.putExtra("timestamp", timestamp);
+            startActivity(statusIntent);
 
-            // Publish the entry to MQTT broker using MQTTHelper
-            mqttHelper.publishMessage(entry.timestamp + entry.payload);
-
-            // Notify the user of success
-            Toast.makeText(this, "Entry saved successfully!", Toast.LENGTH_SHORT).show();
-
-            // Clear the form or close the activity as needed
+            // Finish NewEntryActivity so it returns to the main screen when StatusActivity finishes
             finish();
 
         } catch (JSONException e) {
             Toast.makeText(this, "Failed to save entry: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+
 }
 

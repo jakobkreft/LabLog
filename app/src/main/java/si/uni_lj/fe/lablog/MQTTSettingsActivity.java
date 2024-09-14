@@ -16,6 +16,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
+
 public class MQTTSettingsActivity extends AppCompatActivity {
 
     private EditText brokerInput;
@@ -55,15 +57,16 @@ public class MQTTSettingsActivity extends AppCompatActivity {
         // Save the settings when the "Save" button is clicked
         saveSettingsButton.setOnClickListener(v -> saveMqttSettings());
 
-        // Send the message when the "Send" button is clicked
         sendButton.setOnClickListener(v -> {
             String message = messageInput.getText().toString().trim();
             if (!message.isEmpty()) {
-                mqttHelper.publishMessage(message);
+                mqttHelper.publishMessage(message); // No try-catch needed if MqttException is not thrown
             } else {
                 Toast.makeText(this, "Please enter a message to send", Toast.LENGTH_SHORT).show();
             }
         });
+
+
 
         // Back button functionality
         View backButton = findViewById(R.id.backButton);
