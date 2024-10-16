@@ -42,7 +42,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.concurrent.Executors;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -56,7 +58,8 @@ import org.json.JSONObject;
 import si.uni_lj.fe.lablog.data.AppDatabase;
 import si.uni_lj.fe.lablog.data.Entry;
 import si.uni_lj.fe.lablog.data.EntryDao;
-
+import si.uni_lj.fe.lablog.data.Key;
+import si.uni_lj.fe.lablog.data.KeyDao;
 public class NewEntryActivity extends AppCompatActivity {
     private Uri currentImageUri;
     private LinearLayout linearLayout;
@@ -64,7 +67,7 @@ public class NewEntryActivity extends AppCompatActivity {
     private ArrayList<String> selectedKeysList; // Store the selected keys
     private String currentKeyForImage; // To store the current key for which image is being taken
     private HashMap<String, Uri> imageUriMap = new HashMap<>(); // Store image URIs associated with their keys
-
+    private KeyDao keyDao;
     // Launcher to start RecentKeysActivity and handle the result
     private final ActivityResultLauncher<Intent> selectKeyLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -78,7 +81,7 @@ public class NewEntryActivity extends AppCompatActivity {
                             selectedKeysList.add(keyName);
 
                             // Create a new card based on the selected key
-                            createKeyCard(keyName, keyType);
+                            createKeyCard(keyName, keyType, null);
                         }
                     });
 
@@ -119,6 +122,9 @@ public class NewEntryActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        // Initialize the DAO
+        keyDao = MyApp.getDatabase().keyDao();
+        // Initialize the DAO
 
         // Initialize MQTT Helper
         mqttHelper = new MQTTHelper(this);
@@ -174,9 +180,65 @@ public class NewEntryActivity extends AppCompatActivity {
         // Set up the Save button functionality
         View saveButton = findViewById(R.id.SaveEntryButton);
         saveButton.setOnClickListener(v -> saveEntry());
+
+        // Check if a payload is passed for duplication
+        String payload = getIntent().getStringExtra("payload");
+        if (payload != null) {
+            // Initialize the DAO
+
+            prepopulateWithPayload(payload);  // Method to prepopulate fields
+        }
+    }
+    private void prepopulateWithPayload(String payload) {
+        try {
+            JSONObject jsonObject = new JSONObject(payload);
+
+            // Iterate through each key-value pair and prepopulate fields
+            Iterator<String> keys = jsonObject.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                String value = jsonObject.getString(key);
+
+                // Add the key to the selected keys list
+                selectedKeysList.add(key);
+
+                // Fetch the key type asynchronously
+                getKeyType(key, keyType -> {
+                    Log.e("NewEntryDuplicate", "create new card with key and value: " + key + " type: " + keyType);
+
+                    // Create a new card based on the key and value
+                    createKeyCard(key, keyType, value); // Pass the value for prepopulation
+                });
+            }
+        } catch (JSONException e) {
+            Toast.makeText(this, "Error parsing entry for duplication: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
-    private void createKeyCard(String keyName, String keyType) {
+    private void getKeyType(String keyName, KeyTypeCallback callback) {
+        // Use Executors to handle background threads
+        Executors.newSingleThreadExecutor().execute(() -> {
+            Key key = keyDao.getKeyByName(keyName);
+
+            // Post back to the main thread to handle the result
+            runOnUiThread(() -> {
+                if (key != null) {
+                    callback.onKeyTypeRetrieved(key.type);
+                } else {
+                    Log.e("NewEntryActivity", "Key not found for name: " + keyName);
+                    callback.onKeyTypeRetrieved("String"); // Default to "String" if not found
+                }
+            });
+        });
+    }
+
+    // Create a callback interface
+    public interface KeyTypeCallback {
+        void onKeyTypeRetrieved(String keyType);
+    }
+
+
+    private void createKeyCard(String keyName, String keyType, String value) {
         // Inflate the key_value_card.xml layout
         View keyCardView = inflater.inflate(R.layout.key_value_card, linearLayout, false);
 
@@ -193,36 +255,46 @@ public class NewEntryActivity extends AppCompatActivity {
         // Set up the input based on the key type
         switch (keyType) {
             case "String":
-                // Show the TextInput for String
+                // Show the TextInput for String and set the value if provided
                 keyCardView.findViewById(R.id.textInputLayout).setVisibility(View.VISIBLE);
                 TextInputEditText stringEditText = keyCardView.findViewById(R.id.textInputEditText);
                 stringEditText.setTag(keyName); // Tag with the key name
+                if (value != null) {
+                    stringEditText.setText(value);  // Set the prefilled value
+                }
                 break;
             case "Boolean":
-                // Show the CheckBox for Boolean
+                // Show the CheckBox for Boolean and set the value if provided
                 keyCardView.findViewById(R.id.checkBox2).setVisibility(View.VISIBLE);
                 CheckBox checkBox = keyCardView.findViewById(R.id.checkBox2);
                 checkBox.setTag(keyName); // Tag with the key name
+                if (value != null) {
+                    checkBox.setChecked(Boolean.parseBoolean(value)); // Set the prefilled value
+                }
                 break;
             case "Integer":
-                // Show the TextInput for Int and set input type to number
-                keyCardView.findViewById(R.id.textInputLayout).setVisibility(View.VISIBLE);
-                TextInputEditText intEditText = keyCardView.findViewById(R.id.textInputEditText);
-                intEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
-                intEditText.setTag(keyName); // Tag with the key name
-                break;
             case "Float":
-                // Show the TextInput for Float and set input type to decimal number
+                // Show the TextInput for Int/Float and set input type
                 keyCardView.findViewById(R.id.textInputLayout).setVisibility(View.VISIBLE);
-                TextInputEditText floatEditText = keyCardView.findViewById(R.id.textInputEditText);
-                floatEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                floatEditText.setTag(keyName); // Tag with the key name
+                TextInputEditText numberEditText = keyCardView.findViewById(R.id.textInputEditText);
+                numberEditText.setTag(keyName); // Tag with the key name
+                numberEditText.setInputType(keyType.equals("Integer") ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                if (value != null) {
+                    numberEditText.setText(value);  // Set the prefilled value
+                }
                 break;
             case "Image":
-                // Show the ImageButton for Image capture
+                // Show the ImageButton for Image capture and set the image if provided
                 keyCardView.findViewById(R.id.imageButton).setVisibility(View.VISIBLE);
                 ImageButton imageButton = keyCardView.findViewById(R.id.imageButton);
                 imageButton.setTag(keyName); // Tag with the key name
+
+                if (value != null) {
+                    // Decode and display the Base64 image
+                    byte[] decodedString = Base64.decode(value, Base64.DEFAULT);
+                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    imageButton.setImageBitmap(decodedByte);
+                }
 
                 // Set OnClickListener to launch the camera
                 imageButton.setOnClickListener(v -> {
@@ -231,13 +303,14 @@ public class NewEntryActivity extends AppCompatActivity {
                 });
                 break;
             default:
-                // Handle any other types if necessary
+                Log.e("NewEntryActivity", "Unknown key type: " + keyType);
                 break;
         }
 
         // Add the new key card to the LinearLayout
         linearLayout.addView(keyCardView);
     }
+
     private void launchCamera() {
         // Check if the camera permission is granted
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {

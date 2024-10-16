@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Set an OnClickListener to the card to open LatestEntryActivity
                 cardView.setOnClickListener(v -> {
-                    Intent intent = new Intent(MainActivity.this, LatestEntryActivity.class);
+                    Intent intent = new Intent(MainActivity.this, SearchActivity.class);
                     startActivity(intent);
                 });
 
@@ -250,10 +250,10 @@ public class MainActivity extends AppCompatActivity {
                     seeAllTextView.setPadding(16, 8, 16, 8);
 
                     // Set an OnClickListener to navigate to LatestEntryActivity when clicked
-                    seeAllTextView.setOnClickListener(v -> {
-                        Intent intent = new Intent(MainActivity.this, LatestEntryActivity.class);
-                        startActivity(intent);
-                    });
+                    //seeAllTextView.setOnClickListener(v -> {
+                    //    Intent intent = new Intent(MainActivity.this, LatestEntryActivity.class);
+                    //    startActivity(intent);
+                    //});
 
                     // Add the "See all..." TextView to the FlexboxLayout
                     flexboxContainer.addView(seeAllTextView);

@@ -1,7 +1,9 @@
 // EntryDisplayHelper.java
 package si.uni_lj.fe.lablog;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
@@ -9,11 +11,16 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
+import com.google.android.flexbox.FlexboxLayout;
 
 import org.json.JSONObject;
 
@@ -25,10 +32,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import si.uni_lj.fe.lablog.data.AppDatabase;
 import si.uni_lj.fe.lablog.data.Entry;
+import si.uni_lj.fe.lablog.data.EntryDao;
 import si.uni_lj.fe.lablog.data.Key;
 import si.uni_lj.fe.lablog.data.KeyDao;
-
 public class EntryDisplayHelper {
 
     private final Context context;
@@ -66,6 +74,22 @@ public class EntryDisplayHelper {
                 String formattedTimestamp = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault())
                         .format(new Date(entry.timestamp));
                 timestampTextView.setText(formattedTimestamp);
+
+                // Get the Flexbox layout (initially hidden)
+                FlexboxLayout flexboxLayout = cardView.findViewById(R.id.flexboxLayout);
+                flexboxLayout.setVisibility(View.GONE); // Initially set to GONE
+
+                // Toggle visibility when card is clicked
+                cardView.setOnClickListener(v -> {
+                    if (flexboxLayout.getVisibility() == View.VISIBLE) {
+                        flexboxLayout.setVisibility(View.GONE);
+                    } else {
+                        flexboxLayout.setVisibility(View.VISIBLE);
+                    }
+                });
+
+                // Set up buttons inside Flexbox layout with functionality
+                setupButtons(flexboxLayout, entry, cardView, container);
 
                 // Get the container for key-value pairs
                 LinearLayout payloadContainer = cardView.findViewById(R.id.payloadContainer);
@@ -123,13 +147,144 @@ public class EntryDisplayHelper {
                 GradientDrawable background = (GradientDrawable) keyTextView.getBackground();
                 background.setStroke(widthStroke, ContextCompat.getColor(context, android.R.color.white));
 
-
-
             } catch (Exception e) {
                 Log.e("EntryDisplayHelper", "Error parsing entry: " + entry.id, e);
             }
         }
     }
+
+    private void setupButtons(FlexboxLayout flexboxLayout, Entry entry, View cardView, LinearLayout container) {
+        // Find buttons inside the flexbox layout
+        Button archiveButton = flexboxLayout.findViewById(R.id.ArchiveButton);
+        Button editButton = flexboxLayout.findViewById(R.id.EditButton);
+        Button deleteButton = flexboxLayout.findViewById(R.id.DeleteButton);
+        Button duplicateButton = flexboxLayout.findViewById(R.id.DuplicateButton);
+        Button resendButton = flexboxLayout.findViewById(R.id.ResendButton);
+
+        // Implement the functionality for each button
+        archiveButton.setOnClickListener(v -> {
+            // Archive logic
+            archiveEntry(entry);
+        });
+
+        editButton.setOnClickListener(v -> {
+            // Edit logic
+            editEntry(entry);
+        });
+
+        deleteButton.setOnClickListener(v -> {
+            // Delete logic
+            deleteEntry(entry, cardView, container);
+        });
+
+        duplicateButton.setOnClickListener(v -> {
+            // Duplicate logic
+            duplicateEntry(entry);
+        });
+
+        resendButton.setOnClickListener(v -> {
+            // Resend logic
+            resendEntry(entry);
+        });
+    }
+
+    private void archiveEntry(Entry entry) {
+        // Implement archive functionality
+        Log.d("EntryDisplayHelper", "Archiving entry: " + entry.id);
+    }
+
+    private void editEntry(Entry entry) {
+        // Implement edit functionality
+        Log.d("EntryDisplayHelper", "Editing entry: " + entry.id);
+    }
+
+
+    private void deleteEntry(Entry entry, View cardView, LinearLayout container) {
+        // Create a confirmation dialog
+        new AlertDialog.Builder(context)
+                .setTitle("Delete Entry")
+                .setMessage("Are you sure you want to delete this entry? This will delete it from the local database but will not affect any data already sent over MQTT.")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    // Execute the delete operation
+                    new Thread(() -> {
+                        try {
+                            // Delete the entry from the database
+                            AppDatabase db = MyApp.getDatabase();
+                            EntryDao entryDao = db.entryDao();
+                            entryDao.deleteEntry(entry);
+
+                            // Run on the UI thread to update the UI (remove card)
+                            ((AppCompatActivity) context).runOnUiThread(() -> {
+                                container.removeView(cardView); // Remove the card from the layout
+                                Toast.makeText(context, "Entry deleted successfully.", Toast.LENGTH_SHORT).show();
+                            });
+
+                        } catch (Exception e) {
+                            // Handle any error during deletion
+                            Log.e("EntryDisplayHelper", "Error deleting entry: " + entry.id, e);
+                            ((AppCompatActivity) context).runOnUiThread(() -> {
+                                Toast.makeText(context, "Failed to delete entry.", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    }).start();
+                })
+                .setNegativeButton("Cancel", null) // Do nothing on cancel
+                .show();
+    }
+
+    private void duplicateEntry(Entry entry) {
+        try {
+            // Get the payload (key-value data) from the entry
+            String payload = entry.payload;
+
+            // Create an Intent to start NewEntryActivity
+            Intent duplicateIntent = new Intent(context, NewEntryActivity.class);
+            duplicateIntent.putExtra("payload", payload);  // Pass the payload
+
+            // Start NewEntryActivity
+            context.startActivity(duplicateIntent);
+        } catch (Exception e) {
+            Log.e("EntryDisplayHelperDuplicate", "Error duplicating entry: " + entry.id, e);
+            Toast.makeText(context, "Error occurred while duplicating entry.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    private void resendEntry(Entry entry) {
+        // Create confirmation dialog
+        new AlertDialog.Builder(context)
+                .setTitle("Resend Entry")
+                .setMessage("Are you sure you want to resend this entry? This will republish the data over MQTT.")
+                .setPositiveButton("Resend", (dialog, which) -> {
+                    try {
+                        // Get the entry payload
+                        String payload = entry.payload;
+
+                        // Use MQTTHelper to resend the message
+                        MQTTHelper mqttHelper = new MQTTHelper(context);
+                        MQTTHelper.MqttStatus status = mqttHelper.publishMessage(payload);
+
+                        // Provide feedback to the user
+                        if (status == MQTTHelper.MqttStatus.SUCCESS) {
+                            Toast.makeText(context, "Entry resent successfully.", Toast.LENGTH_SHORT).show();
+                        } else if (status == MQTTHelper.MqttStatus.DISABLED) {
+                            Toast.makeText(context, "MQTT is disabled in the settings.", Toast.LENGTH_SHORT).show();
+                        } else if (status == MQTTHelper.MqttStatus.INVALID_SETTINGS) {
+                            Toast.makeText(context, "Invalid MQTT settings.", Toast.LENGTH_SHORT).show();
+                        } else if (status == MQTTHelper.MqttStatus.CONNECTION_FAILED) {
+                            Toast.makeText(context, "Failed to connect to MQTT broker.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "Failed to resend entry.", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        Log.e("EntryDisplayHelper", "Error resending entry: " + entry.id, e);
+                        Toast.makeText(context, "Error occurred while resending entry.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
 
     private void setKeyBackgroundColor(String type, GradientDrawable background) {
         switch (type.toLowerCase()) {
