@@ -39,6 +39,7 @@
     <string name="broker_address">Broker address</string>
     <string name="topic">Topic</string>
     <string name="send_icon">send icon</string>
+    <string name="welcome_text">Welcome to Lablog. Press the \'Plus\' button in the bottom to create your first data entry. Your entries will show up here.</string>
 
     <string-array name="key_type_options">
         <item>No Type</item>

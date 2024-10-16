@@ -62,7 +62,9 @@
                     android:id="@+id/textInputEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="paylaod value" />
+                    android:hint="paylaod value"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#6D6D6D" />
 
             </com.google.android.material.textfield.TextInputLayout>
 

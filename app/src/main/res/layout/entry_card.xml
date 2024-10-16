@@ -53,6 +53,16 @@
                 android:visibility="visible" />
 
 
+            <TextView
+                android:id="@+id/WelcomeText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_text"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/flexboxContainer"
                 android:layout_width="match_parent"
@@ -90,7 +100,8 @@
                     android:layout_margin="4dp"
                     android:background="@drawable/entries_rounded_background"
                     android:text="Archive"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#FFFFFF"
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/EditButton"
@@ -99,7 +110,8 @@
                     android:layout_margin="4dp"
                     android:background="@drawable/entries_rounded_background"
                     android:text="Edit"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#FFFFFF"
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/DeleteButton"
@@ -108,7 +120,11 @@
                     android:layout_margin="4dp"
                     android:background="@drawable/entries_rounded_background"
                     android:text="Delete"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#FFFFFF"
+                    app:icon="@drawable/ic_delete"
+                    app:iconPadding="8dp"
+                    app:iconSize="12dp"
+                    app:iconTint="#FFFFFF" />
 
                 <Button
                     android:id="@+id/DuplicateButton"
@@ -117,7 +133,9 @@
                     android:layout_margin="4dp"
                     android:background="@drawable/entries_rounded_background"
                     android:text="Duplicate"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#FFFFFF"
+                    app:icon="@drawable/ic_duplicate"
+                    app:iconTint="#FFFFFF" />
 
                 <Button
                     android:id="@+id/ResendButton"
@@ -126,7 +144,11 @@
                     android:layout_margin="4dp"
                     android:background="@drawable/entries_rounded_background"
                     android:text="Resend"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#FFFFFF"
+                    app:icon="@drawable/ic_resend"
+                    app:iconPadding="8dp"
+                    app:iconSize="18dp"
+                    app:iconTint="#FFFFFF" />
 
 
             </com.google.android.flexbox.FlexboxLayout>

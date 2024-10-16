@@ -100,24 +100,29 @@ public class MainActivity extends AppCompatActivity {
         // Reload and display the latest entry
         loadAndDisplayLatestEntry();
     }
-
-
     private void loadAndDisplayLatestEntry() {
         executorService.execute(() -> {
             // Fetch the latest entry from the database
             List<Entry> entries = entryDao.getAllEntries();
 
             if (entries.isEmpty()) {
-                Log.d("MainActivity", "No entries found in the database.");
+                runOnUiThread(() -> {
+                    TextView welcomeText = findViewById(R.id.WelcomeText);
+                    welcomeText.setVisibility(View.VISIBLE); // Show the welcome text
+                });
                 return;
             }
 
-            // Load key types using the helper
-            EntryDisplayHelper helper = new EntryDisplayHelper(this, inflater);
-            Map<String, String> keyTypeMap = helper.loadKeyTypeMap(keyDao);
+            // Load key types using the helper in the background
+            Map<String, String> keyTypeMap = new HashMap<>();
+            keyTypeMap = new EntryDisplayHelper(MainActivity.this, inflater).loadKeyTypeMap(keyDao);
 
             // Post to the main thread to update UI
+            Map<String, String> finalKeyTypeMap = keyTypeMap;
             runOnUiThread(() -> {
+                TextView welcomeText = findViewById(R.id.WelcomeText);
+                welcomeText.setVisibility(View.GONE); // Hide the welcome text if there are entries
+
                 // Add "Last entry" text before the last entry card
                 TextView lastEntryTextView = new TextView(MainActivity.this);
                 lastEntryTextView.setText(R.string.last_entry);
@@ -126,12 +131,13 @@ public class MainActivity extends AppCompatActivity {
                 lastEntryTextView.setPadding(24, 16, 16, 16);
                 linearLayout.addView(lastEntryTextView);
 
-                // Display the latest entry
-                Log.d("MainActivity", "Displaying the latest entry.");
-                helper.displayEntries(entries, keyTypeMap, linearLayout, false);
+                // Display the latest entry using the helper
+                new EntryDisplayHelper(MainActivity.this, inflater).displayEntries(entries, finalKeyTypeMap, linearLayout, false);
             });
         });
     }
+
+
     private void loadAndDisplayTimestamps() {
         executorService.execute(() -> {
             // Fetch all entries from the database

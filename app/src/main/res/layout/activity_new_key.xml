@@ -71,27 +71,20 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <LinearLayout
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:text="@string/select_type_for_this_key"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp" />
+
+            <Spinner
+                android:id="@+id/spinner"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:paddingTop="25dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:text="@string/select_type_for_this_key"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp" />
-
-                <Spinner
-                    android:id="@+id/spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:entries="@array/key_type_options" />
-            </LinearLayout>
+                android:layout_height="50dp"
+                android:entries="@array/key_type_options" />
 
         </LinearLayout>
     </ScrollView>
