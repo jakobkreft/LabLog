@@ -1,0 +1,8 @@
+LabLog is a digital laboratory notebook designed to replace traditional paper-based lab records. It allows you to record sensor readings, procedures, and observations in a structured and organized way. Each entry is automatically timestamped, ensuring accurate and tamper-proof records.
+
+In addition to text and numeric values, LabLog enables the storage of images, which can be particularly useful for later analysis—something paper notebooks can’t provide. The app differentiates itself by associating each entry with specific data keys, making it easier to categorize, search, and filter entries based on the type of information stored.
+
+LabLog is ideal for laboratories equipped with IoT sensors that automatically measure and send data to a server. The app can also send manual entries to the same server using the MQTT protocol, ensuring that human-recorded data is securely stored alongside automated sensor readings.
+
+This approach improves both the transparency and reliability of laboratory data. For example, when using analog pH strips, a lab technician can manually input the pH reading into LabLog and send it to the server with other sensor data, ensuring a unified and secure record-keeping system.
+

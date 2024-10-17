@@ -43,6 +43,15 @@
                 android:textColor="#FFFFFF"
                 android:textSize="20sp" />
 
+            <TextView
+                android:id="@+id/InfoTextRecentKeys"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:text="Long press keys to rename or delete them."
+                android:textColor="#A5A5A5"
+                android:textSize="14sp" />
+
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/flexboxLayout"
                 android:layout_width="match_parent"

@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -11,6 +12,9 @@ import java.util.List;
 public interface EntryDao {
     @Insert
     void insertEntry(Entry entry);
+
+    @Update  // Add the update method
+    void updateEntry(Entry entry);
 
     @Query("SELECT * FROM entries ORDER BY timestamp DESC")
     List<Entry> getAllEntries();

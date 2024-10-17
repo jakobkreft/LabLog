@@ -1,0 +1,2 @@
+A digital lab notebook with automatic timestamping
+
