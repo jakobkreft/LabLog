@@ -1,6 +1,6 @@
 # LabLog
 
-[![Latest release][release-badge]](https://github.com/jakobkreft/LabLog/releases)
+[![Latest release](https://img.shields.io/github/v/release/jakobkreft/LabLog?color=orange&label=release)](https://github.com/jakobkreft/LabLog/releases)
 
 **LabLog** is a digital laboratory notebook designed for use in labs to replace traditional paper notebooks. It helps lab workers record and manage sensor data, observations, and procedures in an organized way, with automatic timestamping for each entry. LabLog supports both text and image-based data entry, and integrates with IoT sensors via MQTT to securely store data.
 
