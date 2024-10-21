@@ -1,0 +1,9 @@
+Version 1.0 - Initial Release
+
+- Initial release of LabLog
+- Features include:
+  - Lab activity logging with key value pairs
+  - MQTT integration for sending data
+  - Delete or resend entries
+  - Edit or delete keys
+  - Simple and intuitive user interface
