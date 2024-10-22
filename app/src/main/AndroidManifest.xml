@@ -39,7 +39,10 @@
         <activity
             android:name=".NewKeyActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan|adjustResize"
+
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".RecentKeysActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
@@ -47,6 +50,7 @@
         <activity
             android:name=".NewEntryActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
         <activity
             android:name=".LatestEntryActivity"
