@@ -1,6 +1,8 @@
 # LabLog
 
-[![Latest release](https://img.shields.io/github/v/release/jakobkreft/LabLog?color=orange&label=release)](https://github.com/jakobkreft/LabLog/releases)
+![Platforms](https://img.shields.io/badge/platform-Android-green) [![Latest release](https://img.shields.io/github/v/release/jakobkreft/LabLog?color=orange&label=release)](https://github.com/jakobkreft/LabLog/releases)
+
+
 
 
 [<img width="100%" height="auto" src="fastlane/metadata/android/en-US/images/featureGraphic.png" alt="LabLog feature graphic" />](https://f-droid.org/packages/si.uni_lj.fe.lablog/)
