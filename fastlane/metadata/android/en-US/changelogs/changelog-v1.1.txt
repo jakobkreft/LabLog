@@ -1,0 +1,4 @@
+F-droid requrements
+
+- Changed "SAVE" button position
+- Disabled dependency metadata when building APKs.
