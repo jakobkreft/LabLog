@@ -34,5 +34,12 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        View ImportExportLayout = findViewById(R.id.ImportExportLayout);
+        ImportExportLayout.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, ImportExportSettingsActivity.class);
+            startActivity(intent);
+        });
+
+
     }
 }

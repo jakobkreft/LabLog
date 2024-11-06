@@ -184,6 +184,7 @@ public class RecentKeysActivity extends AppCompatActivity {
         builder.show();
     }
 
+
     // Method to show a dialog for renaming a key
     private void showRenameDialog(Key key) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -196,7 +197,19 @@ public class RecentKeysActivity extends AppCompatActivity {
         builder.setPositiveButton("Rename", (dialog, which) -> {
             String newKeyName = input.getText().toString().trim();
             if (!newKeyName.isEmpty() && !newKeyName.equals(key.name)) {
-                renameKeyInEntries(key, newKeyName);
+                // Check if a key with the new name already exists
+                new Thread(() -> {
+                    Key existingKey = keyDao.getKeyByName(newKeyName);
+                    runOnUiThread(() -> {
+                        if (existingKey != null) {
+                            // Show a Toast message if the key name already exists
+                            Toast.makeText(this, "A key with this name already exists. Choose a different name.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            // Proceed with renaming if no duplicate key is found
+                            renameKeyInEntries(key, newKeyName);
+                        }
+                    });
+                }).start();
             } else {
                 Toast.makeText(this, "Invalid name or no change made.", Toast.LENGTH_SHORT).show();
             }
@@ -206,6 +219,9 @@ public class RecentKeysActivity extends AppCompatActivity {
 
         builder.show();
     }
+
+
+
     // Method to rename a key and update entries that use it
     private void renameKeyInEntries(Key key, String newKeyName) {
         new Thread(() -> {

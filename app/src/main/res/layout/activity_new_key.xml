@@ -64,6 +64,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="@string/key_name_hint"
+            android:paddingHorizontal="8dp"
+            app:boxBackgroundColor="#4A8C8C8C"
             app:boxBackgroundMode="outline"
             app:boxCornerRadiusBottomEnd="30dp"
             app:boxCornerRadiusBottomStart="30dp"
@@ -100,7 +102,8 @@
             android:id="@+id/spinner"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:entries="@array/key_type_options" />
+            android:entries="@array/key_type_options"
+            android:paddingHorizontal="8dp" />
 
     </LinearLayout>
 
