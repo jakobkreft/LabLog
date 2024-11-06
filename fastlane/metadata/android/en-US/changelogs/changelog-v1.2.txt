@@ -1,0 +1,3 @@
+- Bux fix: MQTT package structured changed. so now it includes the timestamp and the data.
+- Easy Import / Export of the database using Json file.
+- Improved UI: now able to remove selected keys when creating a new entry. 
