@@ -40,7 +40,6 @@
                 android:background="@drawable/settings_rounded_bg">
 
 
-
                 <TextView
                     android:id="@+id/textView5"
                     android:layout_width="wrap_content"
@@ -51,7 +50,7 @@
                     android:paddingTop="8dp"
                     android:text=" Export database to a file"
                     android:textColor="#FFFFFF"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -66,7 +65,7 @@
                     android:text="Export"
                     android:textAlignment="center"
                     android:textColor="@color/white"
-                    android:textSize="22sp"
+                    android:textSize="16sp"
                     app:icon="@drawable/ic_export"
                     app:iconGravity="textStart"
                     app:iconTint="@color/white"
@@ -85,7 +84,6 @@
                 android:background="@drawable/settings_rounded_bg">
 
 
-
                 <TextView
                     android:id="@+id/textView6"
                     android:layout_width="wrap_content"
@@ -96,7 +94,7 @@
                     android:paddingTop="8dp"
                     android:text="Import data from a file"
                     android:textColor="#FFFFFF"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -111,7 +109,7 @@
                     android:text="Import"
                     android:textAlignment="center"
                     android:textColor="@color/white"
-                    android:textSize="22sp"
+                    android:textSize="16sp"
                     app:icon="@drawable/ic_import"
                     app:iconGravity="textStart"
                     app:iconTint="@color/white"
