@@ -3,6 +3,7 @@ package si.uni_lj.fe.lablog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -19,7 +20,6 @@ import android.widget.Button;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -97,6 +97,25 @@ public class SearchActivity extends AppCompatActivity {
         backButton.setOnClickListener(v -> finish());
 
 
+        // Set an OnClickListener to the searchButton
+        View searchActivityButton = findViewById(R.id.searchActivityButton);
+        searchActivityButton.setVisibility(View.INVISIBLE);
+
+        // Set an OnClickListener to the searchButton
+        View settingsButton = findViewById(R.id.settingsButton);
+        settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(SearchActivity.this, SettingsActivity.class);
+            startActivity(intent);
+        });
+
+        // Set an OnClickListener to the addButton
+        View addButton = findViewById(R.id.addButton);
+        addButton.setOnClickListener(v -> {
+            Intent intent = new Intent(SearchActivity.this, NewEntryActivity.class);
+            startActivity(intent);
+        });
+
+
         // Load key types map
         loadKeyTypeMap();
 
@@ -163,6 +182,10 @@ public class SearchActivity extends AppCompatActivity {
         });
     }
     private void performSearch() {
+        // Hide the keyboard
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
+
         String searchQuery = searchInput.getText().toString().trim().toLowerCase();
 
         executorService.execute(() -> {

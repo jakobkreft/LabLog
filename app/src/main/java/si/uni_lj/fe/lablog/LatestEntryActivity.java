@@ -76,7 +76,7 @@ public class LatestEntryActivity extends AppCompatActivity {
         });
 
         // Set an OnClickListener to the searchButton
-        View searchButton = findViewById(R.id.searchButton);
+        View searchButton = findViewById(R.id.searchActivityButton);
         searchButton.setOnClickListener(v -> {
             Intent intent = new Intent(LatestEntryActivity.this, SearchActivity.class);
             startActivity(intent);

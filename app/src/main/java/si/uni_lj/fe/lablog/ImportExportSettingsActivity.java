@@ -61,6 +61,12 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
 
         findViewById(R.id.Export).setOnClickListener(v -> checkStoragePermissionAndExport());
         findViewById(R.id.Import).setOnClickListener(v -> startFilePickerForImport());
+
+
+        // Back button functionality
+        View backButton = findViewById(R.id.backButton);
+        backButton.setVisibility(View.VISIBLE);
+        backButton.setOnClickListener(v -> finish());
     }
 
     private void checkStoragePermissionAndExport() {

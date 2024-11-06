@@ -40,6 +40,24 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Set an OnClickListener to the searchButton
+        View searchActivityButton = findViewById(R.id.searchActivityButton);
+        searchActivityButton.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
+
+        // Set an OnClickListener to the searchButton
+        View settingsButton = findViewById(R.id.settingsButton);
+        settingsButton.setVisibility(View.INVISIBLE);
+
+        // Set an OnClickListener to the addButton
+        View addButton = findViewById(R.id.addButton);
+        addButton.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, NewEntryActivity.class);
+            startActivity(intent);
+        });
+
 
     }
 }

@@ -152,6 +152,7 @@ public class NewEntryActivity extends AppCompatActivity {
         timestampCardView.findViewById(R.id.checkBox2).setVisibility(View.GONE);
         timestampCardView.findViewById(R.id.textInputLayout).setVisibility(View.GONE);
         timestampCardView.findViewById(R.id.imageButton).setVisibility(View.GONE);
+        timestampCardView.findViewById(R.id.removeButton).setVisibility(View.INVISIBLE);
 
         // Set an OnClickListener on the timestamp card to update the timestamp
         timestampCardView.setOnClickListener(v -> {
@@ -237,7 +238,6 @@ public class NewEntryActivity extends AppCompatActivity {
         void onKeyTypeRetrieved(String keyType);
     }
 
-
     private void createKeyCard(String keyName, String keyType, String value) {
         // Inflate the key_value_card.xml layout
         View keyCardView = inflater.inflate(R.layout.key_value_card, linearLayout, false);
@@ -255,50 +255,44 @@ public class NewEntryActivity extends AppCompatActivity {
         // Set up the input based on the key type
         switch (keyType) {
             case "String":
-                // Show the TextInput for String and set the value if provided
                 keyCardView.findViewById(R.id.textInputLayout).setVisibility(View.VISIBLE);
                 TextInputEditText stringEditText = keyCardView.findViewById(R.id.textInputEditText);
-                stringEditText.setTag(keyName); // Tag with the key name
+                stringEditText.setTag(keyName);
                 if (value != null) {
-                    stringEditText.setText(value);  // Set the prefilled value
+                    stringEditText.setText(value);
                 }
                 break;
             case "Boolean":
-                // Show the CheckBox for Boolean and set the value if provided
                 keyCardView.findViewById(R.id.checkBox2).setVisibility(View.VISIBLE);
                 CheckBox checkBox = keyCardView.findViewById(R.id.checkBox2);
-                checkBox.setTag(keyName); // Tag with the key name
+                checkBox.setTag(keyName);
                 if (value != null) {
-                    checkBox.setChecked(Boolean.parseBoolean(value)); // Set the prefilled value
+                    checkBox.setChecked(Boolean.parseBoolean(value));
                 }
                 break;
             case "Integer":
             case "Float":
-                // Show the TextInput for Int/Float and set input type
                 keyCardView.findViewById(R.id.textInputLayout).setVisibility(View.VISIBLE);
                 TextInputEditText numberEditText = keyCardView.findViewById(R.id.textInputEditText);
-                numberEditText.setTag(keyName); // Tag with the key name
+                numberEditText.setTag(keyName);
                 numberEditText.setInputType(keyType.equals("Integer") ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 if (value != null) {
-                    numberEditText.setText(value);  // Set the prefilled value
+                    numberEditText.setText(value);
                 }
                 break;
             case "Image":
-                // Show the ImageButton for Image capture and set the image if provided
                 keyCardView.findViewById(R.id.imageButton).setVisibility(View.VISIBLE);
                 ImageButton imageButton = keyCardView.findViewById(R.id.imageButton);
-                imageButton.setTag(keyName); // Tag with the key name
+                imageButton.setTag(keyName);
 
                 if (value != null) {
-                    // Decode and display the Base64 image
                     byte[] decodedString = Base64.decode(value, Base64.DEFAULT);
                     Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                     imageButton.setImageBitmap(decodedByte);
                 }
 
-                // Set OnClickListener to launch the camera
                 imageButton.setOnClickListener(v -> {
-                    currentKeyForImage = keyName; // Set the current key
+                    currentKeyForImage = keyName;
                     launchCamera();
                 });
                 break;
@@ -307,8 +301,26 @@ public class NewEntryActivity extends AppCompatActivity {
                 break;
         }
 
+        // Setup the remove button functionality
+        View removeButton = keyCardView.findViewById(R.id.removeButton);
+        removeButton.setOnClickListener(v -> removeCard(keyCardView, keyName));
+
+
         // Add the new key card to the LinearLayout
         linearLayout.addView(keyCardView);
+    }
+
+    private void removeCard(View cardView, String keyName) {
+        // Remove the card view from the LinearLayout
+        linearLayout.removeView(cardView);
+
+        // Remove the key from the selected keys list
+        selectedKeysList.remove(keyName);
+
+        // Remove any associated image URI from the map
+        imageUriMap.remove(keyName);
+
+        //Toast.makeText(this, "Card removed for key: " + keyName, Toast.LENGTH_SHORT).show();
     }
 
     private void launchCamera() {

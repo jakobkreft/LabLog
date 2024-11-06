@@ -65,6 +65,7 @@
             android:layout_height="match_parent"
             android:hint="@string/key_name_hint"
             android:paddingHorizontal="8dp"
+            android:paddingBottom="16dp"
             app:boxBackgroundColor="#4A8C8C8C"
             app:boxBackgroundMode="outline"
             app:boxCornerRadiusBottomEnd="30dp"

@@ -1,6 +1,8 @@
 package si.uni_lj.fe.lablog;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,12 +18,12 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.flexbox.FlexboxLayout;
 
+import org.eclipse.paho.android.service.BuildConfig;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,6 +31,7 @@ import java.util.concurrent.Executors;
 import si.uni_lj.fe.lablog.data.Entry;
 import si.uni_lj.fe.lablog.data.EntryDao;
 import si.uni_lj.fe.lablog.data.KeyDao;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -50,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
                     insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom);
             return insets;
         });
+
         // Initialize the LinearLayout and LayoutInflater
         linearLayout = findViewById(R.id.LinearLayout);
         inflater = LayoutInflater.from(this);
@@ -66,13 +70,13 @@ public class MainActivity extends AppCompatActivity {
         backButton.setVisibility(View.GONE);
 
         // Set an OnClickListener to the searchButton
-        View searchButton = findViewById(R.id.searchButton);
-        searchButton.setOnClickListener(v -> {
+        View searchActivityButton = findViewById(R.id.searchActivityButton);
+        searchActivityButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SearchActivity.class);
             startActivity(intent);
         });
 
-        // Set an OnClickListener to the searchButton
+        // Set an OnClickListener to the settingsButton
         View settingsButton = findViewById(R.id.settingsButton);
         settingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
@@ -87,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -100,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         // Reload and display the latest entry
         loadAndDisplayLatestEntry();
     }
+
     private void loadAndDisplayLatestEntry() {
         executorService.execute(() -> {
             // Fetch the latest entry from the database

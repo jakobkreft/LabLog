@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageButton
-            android:id="@+id/searchButton"
+            android:id="@+id/searchActivityButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
