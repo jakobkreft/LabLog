@@ -40,7 +40,7 @@
             android:name=".NewKeyActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false"
-            android:windowSoftInputMode="adjustPan|adjustResize"
+            android:windowSoftInputMode="adjustResize"
 
             tools:ignore="LockedOrientationActivity" />
         <activity

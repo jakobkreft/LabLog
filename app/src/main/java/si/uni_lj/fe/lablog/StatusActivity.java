@@ -16,6 +16,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import si.uni_lj.fe.lablog.data.AppDatabase;
 import si.uni_lj.fe.lablog.data.Entry;
@@ -67,7 +69,11 @@ public class StatusActivity extends AppCompatActivity {
             MQTTHelper.MqttStatus mqttStatus = null;
 
             try {
-                mqttStatus = publishToMqtt(payload);
+                // Format payload with timestamp for MQTT
+                String formattedMessage = createFormattedMessage(payload, timestamp);
+
+                // Publish formatted message to MQTT
+                mqttStatus = publishToMqtt(formattedMessage);
                 mqttUsed = mqttStatus == MQTTHelper.MqttStatus.SUCCESS;
             } catch (Exception e) {
                 mqttStatus = MQTTHelper.MqttStatus.PUBLISH_FAILED;
@@ -96,6 +102,23 @@ public class StatusActivity extends AppCompatActivity {
                 confirmButton.setVisibility(View.VISIBLE); // Show the confirm button when done
             });
         }).start();
+    }
+
+    private String createFormattedMessage(String payload, long timestamp) {
+        try {
+            // Create JSON object with timestamp and payload as "data"
+            JSONObject jsonMessage = new JSONObject();
+            jsonMessage.put("timestamp", timestamp);
+
+            // Parse payload into JSON and add it as the "data" field
+            JSONObject dataObject = new JSONObject(payload);
+            jsonMessage.put("data", dataObject);
+
+            return jsonMessage.toString();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "{}"; // Return an empty JSON on error
+        }
     }
 
     private boolean saveEntryToDatabase(String payload, long timestamp) {

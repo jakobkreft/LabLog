@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.flexbox.FlexboxLayout;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
@@ -249,7 +250,6 @@ public class EntryDisplayHelper {
         }
     }
 
-
     private void resendEntry(Entry entry) {
         // Create confirmation dialog
         new AlertDialog.Builder(context)
@@ -257,12 +257,21 @@ public class EntryDisplayHelper {
                 .setMessage("Are you sure you want to resend this entry? This will republish the data over MQTT.")
                 .setPositiveButton("Resend", (dialog, which) -> {
                     try {
-                        // Get the entry payload
+                        // Get the entry payload and timestamp
                         String payload = entry.payload;
+                        long timestamp = entry.timestamp;
+
+                        // Create a JSON object to include both payload and timestamp
+                        JSONObject messageObject = new JSONObject();
+                        messageObject.put("timestamp", timestamp);
+                        messageObject.put("data", new JSONObject(payload));
+
+                        // Convert the JSON object to a string to send over MQTT
+                        String combinedMessage = messageObject.toString();
 
                         // Use MQTTHelper to resend the message
                         MQTTHelper mqttHelper = new MQTTHelper(context);
-                        MQTTHelper.MqttStatus status = mqttHelper.publishMessage(payload);
+                        MQTTHelper.MqttStatus status = mqttHelper.publishMessage(combinedMessage);
 
                         // Provide feedback to the user
                         if (status == MQTTHelper.MqttStatus.SUCCESS) {
@@ -276,6 +285,9 @@ public class EntryDisplayHelper {
                         } else {
                             Toast.makeText(context, "Failed to resend entry.", Toast.LENGTH_SHORT).show();
                         }
+                    } catch (JSONException e) {
+                        Log.e("EntryDisplayHelper", "Error creating JSON message for entry: " + entry.id, e);
+                        Toast.makeText(context, "Error occurred while preparing the message.", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         Log.e("EntryDisplayHelper", "Error resending entry: " + entry.id, e);
                         Toast.makeText(context, "Error occurred while resending entry.", Toast.LENGTH_SHORT).show();
