@@ -123,6 +123,54 @@
                 app:layout_constraintTop_toBottomOf="@+id/textView4" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/AboutLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:background="@drawable/settings_rounded_bg">
+
+            <TextView
+                android:id="@+id/textViewAbout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:paddingRight="8dp"
+                android:text="About LabLog"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/imageViewAbout"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <ImageView
+                android:id="@+id/imageViewAbout"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_info"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/textViewAboutLong"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="16dp"
+                android:paddingRight="8dp"
+                android:text="About application and it's source code..."
+                android:textColor="#8D8D8D"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/imageViewAbout"
+                app:layout_constraintTop_toBottomOf="@+id/textViewAbout" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </LinearLayout>
 
     <include
