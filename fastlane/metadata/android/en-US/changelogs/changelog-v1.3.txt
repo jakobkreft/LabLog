@@ -1,0 +1,3 @@
+- Bux fix: reproducable builds, VCS metadata removed
+- About page
+- Improved UI
