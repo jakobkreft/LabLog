@@ -1,11 +1,13 @@
 package si.uni_lj.fe.lablog;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -15,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -31,6 +34,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 
@@ -68,6 +73,13 @@ public class NewEntryActivity extends AppCompatActivity {
     private String currentKeyForImage; // To store the current key for which image is being taken
     private HashMap<String, Uri> imageUriMap = new HashMap<>(); // Store image URIs associated with their keys
     private KeyDao keyDao;
+
+    private FlexboxLayout flexboxLayout;
+    private TextView newKeyTextView;
+    private final int widthStroke = 8;
+    private EntryDao entryDao;
+
+
     // Launcher to start RecentKeysActivity and handle the result
     private final ActivityResultLauncher<Intent> selectKeyLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -189,7 +201,73 @@ public class NewEntryActivity extends AppCompatActivity {
 
             prepopulateWithPayload(payload);  // Method to prepopulate fields
         }
+
+        // Initialize FlexboxLayout for key selection
+        flexboxLayout = findViewById(R.id.flexboxLayout);
+
+        // Inflate the newKey TextView
+        inflater = LayoutInflater.from(this);
+        newKeyTextView = (TextView) inflater.inflate(R.layout.key_text_view_layout, flexboxLayout, false);
+        newKeyTextView.setText(R.string.new_key);
+
+        // Set an OnClickListener to the newKey TextView
+        newKeyTextView.setOnClickListener(v -> {
+            Intent intent = new Intent(NewEntryActivity.this, NewKeyActivity.class);
+            startActivity(intent);
+        });
+
+        // Initialize EntryDao
+        AppDatabase db = MyApp.getDatabase();
+        entryDao = db.entryDao();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Fetch the keys from the database and update the UI
+        new Thread(() -> {
+            List<Key> keyList = keyDao.getAllKeys();
+
+            runOnUiThread(() -> {
+                // Clear existing views in FlexboxLayout
+                flexboxLayout.removeAllViews();
+
+                // Add key TextViews dynamically
+                for (Key key : keyList) {
+                    if (selectedKeysList.contains(key.name)) continue;
+
+                    TextView keyTextView = (TextView) inflater.inflate(R.layout.key_text_view_layout, flexboxLayout, false);
+                    keyTextView.setText(key.name.trim());
+
+                    // Set stroke color based on key type
+                    GradientDrawable background = (GradientDrawable) keyTextView.getBackground();
+                    setStrokeColorByType(key, background);
+
+                    // Add TextView to FlexboxLayout
+                    flexboxLayout.addView(keyTextView);
+
+                    // Handle key click
+                    keyTextView.setOnClickListener(v -> {
+                        selectedKeysList.add(key.name);
+                        createKeyCard(key.name, key.type, null);
+                        Toast.makeText(this, key.name + " key selected.", Toast.LENGTH_SHORT).show();
+                    });
+
+                    // Handle long click for rename/delete
+                    keyTextView.setOnLongClickListener(v -> {
+                        showEditOrDeleteDialog(key);
+                        return true;
+                    });
+                }
+
+                // Add the "New Key" TextView at the end
+                flexboxLayout.addView(newKeyTextView);
+            });
+        }).start();
+    }
+
+
     private void prepopulateWithPayload(String payload) {
         try {
             JSONObject jsonObject = new JSONObject(payload);
@@ -215,6 +293,128 @@ public class NewEntryActivity extends AppCompatActivity {
             Toast.makeText(this, "Error parsing entry for duplication: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void setStrokeColorByType(Key key, GradientDrawable background) {
+        switch (key.type.toLowerCase()) {
+            case "integer":
+                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorInteger));
+                break;
+            case "boolean":
+                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorBoolean));
+                break;
+            case "image":
+                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorImage));
+                break;
+            case "float":
+                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorFloat));
+                break;
+            case "string":
+                background.setStroke(widthStroke, ContextCompat.getColor(this, R.color.colorString));
+                break;
+            default:
+                background.setStroke(widthStroke, ContextCompat.getColor(this, android.R.color.white));
+                break;
+        }
+    }
+
+    private void showEditOrDeleteDialog(Key key) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Edit or Delete Key");
+        builder.setMessage("What would you like to do with this key?");
+
+        builder.setPositiveButton("Rename", (dialog, which) -> showRenameDialog(key));
+        builder.setNegativeButton("Delete", (dialog, which) -> checkIfKeyCanBeDeleted(key));
+        builder.setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        builder.show();
+    }
+
+    private void showRenameDialog(Key key) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Rename Key");
+
+        final EditText input = new EditText(this);
+        input.setText(key.name);
+        builder.setView(input);
+
+        builder.setPositiveButton("Rename", (dialog, which) -> {
+            String newKeyName = input.getText().toString().trim();
+            if (!newKeyName.isEmpty() && !newKeyName.equals(key.name)) {
+                new Thread(() -> {
+                    Key existingKey = keyDao.getKeyByName(newKeyName);
+                    runOnUiThread(() -> {
+                        if (existingKey != null) {
+                            Toast.makeText(this, "Key with this name already exists.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            renameKeyInEntries(key, newKeyName);
+                        }
+                    });
+                }).start();
+            } else {
+                Toast.makeText(this, "Invalid name or no change made.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void renameKeyInEntries(Key key, String newKeyName) {
+        new Thread(() -> {
+            List<Entry> entries = entryDao.getAllEntries();
+            for (Entry entry : entries) {
+                try {
+                    JSONObject jsonObject = new JSONObject(entry.payload);
+                    if (jsonObject.has(key.name)) {
+                        Object value = jsonObject.get(key.name);
+                        jsonObject.remove(key.name);
+                        jsonObject.put(newKeyName, value);
+                        entry.payload = jsonObject.toString();
+                        entryDao.updateEntry(entry);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            key.name = newKeyName;
+            keyDao.updateKey(key);
+
+            runOnUiThread(() -> {
+                Toast.makeText(this, "Key renamed successfully.", Toast.LENGTH_SHORT).show();
+                onResume();
+            });
+        }).start();
+    }
+
+    private void checkIfKeyCanBeDeleted(Key key) {
+        new Thread(() -> {
+            boolean isUsed = false;
+            List<Entry> entries = entryDao.getAllEntries();
+            for (Entry entry : entries) {
+                try {
+                    JSONObject jsonObject = new JSONObject(entry.payload);
+                    if (jsonObject.has(key.name)) {
+                        isUsed = true;
+                        break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (isUsed) {
+                runOnUiThread(() -> Toast.makeText(this, "Cannot delete. Key is in use.", Toast.LENGTH_SHORT).show());
+            } else {
+                keyDao.deleteKey(key);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Key deleted successfully.", Toast.LENGTH_SHORT).show();
+                    onResume();
+                });
+            }
+        }).start();
+    }
+
 
     private void getKeyType(String keyName, KeyTypeCallback callback) {
         // Use Executors to handle background threads
@@ -303,11 +503,16 @@ public class NewEntryActivity extends AppCompatActivity {
 
         // Setup the remove button functionality
         View removeButton = keyCardView.findViewById(R.id.removeButton);
-        removeButton.setOnClickListener(v -> removeCard(keyCardView, keyName));
-
+        removeButton.setOnClickListener(v -> {
+            removeCard(keyCardView, keyName);
+            onResume(); // Update FlexboxLayout after removing a key card
+        });
 
         // Add the new key card to the LinearLayout
         linearLayout.addView(keyCardView);
+
+        // Update FlexboxLayout after adding a key card
+        onResume();
     }
 
     private void removeCard(View cardView, String keyName) {
@@ -320,8 +525,10 @@ public class NewEntryActivity extends AppCompatActivity {
         // Remove any associated image URI from the map
         imageUriMap.remove(keyName);
 
-        //Toast.makeText(this, "Card removed for key: " + keyName, Toast.LENGTH_SHORT).show();
+        // Update FlexboxLayout to show the key again
+        onResume();
     }
+
 
     private void launchCamera() {
         // Check if the camera permission is granted

@@ -27,6 +27,7 @@ public class StatusActivity extends AppCompatActivity {
 
     private TextView statusTextView;
     private Button confirmButton;
+    private boolean hasErrors = false; // Flag to track errors
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,13 +94,18 @@ public class StatusActivity extends AppCompatActivity {
                     } else if (finalMqttStatus == MQTTHelper.MqttStatus.CONNECTION_FAILED) {
                         appendStatus("MQTT publish failed: Connection to broker failed.", true, false);
                     } else {
-                        appendStatus("MQTT publish failed: Unknown error.", true, false);
+                        appendStatus("MQTT publish failed: Unknown error. Check your internet connection.", true, false);
                     }
                 } else {
                     appendStatus("Database save failed.", true, false);
                 }
 
-                confirmButton.setVisibility(View.VISIBLE); // Show the confirm button when done
+                // Automatically finish the activity if there are no errors
+                if (hasErrors) {
+                    confirmButton.setVisibility(View.VISIBLE);
+                } else {
+                    finishProcess();
+                }
             });
         }).start();
     }
@@ -150,6 +156,7 @@ public class StatusActivity extends AppCompatActivity {
         SpannableString spannableString = new SpannableString(newStatus + "\n");
         if (isError) {
             spannableString.setSpan(new ForegroundColorSpan(Color.RED), 0, spannableString.length(), 0);
+            hasErrors = true; // Set the flag if there is an error
         } else if (isSuccess) {
             spannableString.setSpan(new ForegroundColorSpan(Color.GREEN), 0, spannableString.length(), 0);
         } else {

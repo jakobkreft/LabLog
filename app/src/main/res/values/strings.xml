@@ -14,7 +14,7 @@
     <string name="add_key">+ Add Key</string>
     <string name="payloadText">Payload:</string>
     <string name="latest_entries_card">Latest entries</string>
-    <string name="recent_keys">Recent Keys</string>
+    <string name="recent_keys">Select more keys:</string>
     <string name="new_key">+ New Key</string>
     <string name="select_type_for_this_key">Select type for this key:</string>
     <string name="save_key">Save Key</string>
