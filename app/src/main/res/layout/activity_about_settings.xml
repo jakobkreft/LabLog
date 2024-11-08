@@ -51,6 +51,7 @@
                     android:linksClickable="true"
                     android:paddingHorizontal="8dp"
                     android:paddingTop="8dp"
+                    android:paddingBottom="18dp"
                     android:text="@string/AboutContentString"
                     android:textColor="#FFFFFF"
                     android:textColorLink="@color/light_green"

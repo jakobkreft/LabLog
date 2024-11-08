@@ -40,6 +40,12 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        View AboutLayout = findViewById(R.id.AboutLayout);
+        AboutLayout.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, AboutSettingsActivity.class);
+            startActivity(intent);
+        });
+
         // Set an OnClickListener to the searchButton
         View searchActivityButton = findViewById(R.id.searchActivityButton);
         searchActivityButton.setOnClickListener(v -> {
