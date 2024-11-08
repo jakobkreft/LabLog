@@ -8,7 +8,7 @@
     <string name="back_button_description">back icon</string>
     <string name="latest_entries">Latest entries</string>
     <string name="entry_text">pH | 9.2</string>
-    <string name="saveButton">SAVE</string>
+    <string name="saveButton">Submit &amp; Close</string>
     <string name="new_entry">New entry</string>
     <string name="timestamp">2024–08–30T14:37:57+00:00</string>
     <string name="add_key">+ Add Key</string>
