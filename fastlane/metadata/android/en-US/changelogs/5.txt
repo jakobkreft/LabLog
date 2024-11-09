@@ -1,0 +1,2 @@
+- Improved UI, based on user feedback
+- New feature: Delete all entries 

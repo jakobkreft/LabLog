@@ -1,6 +1,8 @@
 package si.uni_lj.fe.lablog;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -20,6 +22,10 @@ import si.uni_lj.fe.lablog.data.KeyDao;
 
 public class NewKeyActivity extends AppCompatActivity {
 
+    private EditText nameInput;
+    private Spinner spinner;
+    private TextView saveKeyButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,11 +33,17 @@ public class NewKeyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_key);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            v.setPadding(systemBars.left, insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
+                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).right, insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom);
             return insets;
         });
 
-        Spinner spinner = findViewById(R.id.spinner);
+        nameInput = findViewById(R.id.nameInput);
+        spinner = findViewById(R.id.spinner);
+        saveKeyButton = findViewById(R.id.SaveEntryButton);
+
+        // Initialize the SaveKeyButton as invisible
+        saveKeyButton.setVisibility(View.INVISIBLE);
 
         // Create an ArrayAdapter using the string array and custom spinner layouts
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -43,69 +55,82 @@ public class NewKeyActivity extends AppCompatActivity {
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
 
-        // Find the back button by its ID
-        View backButton = findViewById(R.id.backButton);
-        backButton.setVisibility(View.VISIBLE);
-        backButton.setOnClickListener(v -> finish());
+        // Set up listeners for EditText and Spinner
+        nameInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        // Find the SaveKeyButton TextView by its ID
-        TextView saveKeyButton = findViewById(R.id.SaveEntryButton);
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                checkFieldsForEmptyValues();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        spinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                checkFieldsForEmptyValues();
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
 
         // Set an OnClickListener on the SaveKeyButton
         saveKeyButton.setOnClickListener(v -> {
-            // Retrieve the key name from the EditText
-            EditText nameInput = findViewById(R.id.nameInput);
             String keyName = nameInput.getText().toString().trim();
-
-            // Retrieve the selected key type from the Spinner
             String keyType = spinner.getSelectedItem().toString();
 
-            // Check if the name is empty
             if (keyName.isEmpty()) {
-                Toast.makeText(NewKeyActivity.this,
-                        "Key name cannot be empty!",
-                        Toast.LENGTH_SHORT).show();
-                return; // Do not proceed with saving
+                Toast.makeText(NewKeyActivity.this, "Key name cannot be empty!", Toast.LENGTH_SHORT).show();
+                return;
             }
 
-            // Check if a type is selected (assuming the first item is a prompt like "Select Type")
             if (spinner.getSelectedItemPosition() == 0) {
-                Toast.makeText(NewKeyActivity.this,
-                        "Please select a key type!",
-                        Toast.LENGTH_SHORT).show();
-                return; // Do not proceed with saving
+                Toast.makeText(NewKeyActivity.this, "Please select a key type!", Toast.LENGTH_SHORT).show();
+                return;
             }
 
-            // Save the key to the database in a background thread
             new Thread(() -> {
-                // Get the database and DAO
                 AppDatabase db = MyApp.getDatabase();
                 KeyDao keyDao = db.keyDao();
 
-                // Check if a key with the same name already exists
                 Key existingKey = keyDao.getKeyByName(keyName);
                 if (existingKey != null) {
-                    // Key with the same name exists, show a Toast and do not proceed
                     runOnUiThread(() -> Toast.makeText(NewKeyActivity.this,
-                            "Key with the same name already exists!",
-                            Toast.LENGTH_SHORT).show());
+                            "Key with the same name already exists!", Toast.LENGTH_SHORT).show());
                 } else {
-                    // Create a new Key object
                     Key newKey = new Key();
                     newKey.name = keyName;
                     newKey.type = keyType;
 
-                    // Insert the new key into the database
                     keyDao.insertKey(newKey);
 
-                    // Show success toast on the UI thread
                     runOnUiThread(() -> Toast.makeText(NewKeyActivity.this,
-                            keyName + " key of type " + keyType + " saved.",
-                            Toast.LENGTH_SHORT).show());
-                    // Go back to the previous activity
+                            keyName + " key of type " + keyType + " saved.", Toast.LENGTH_SHORT).show());
                     finish();
                 }
             }).start();
         });
+
+        // Back button functionality
+        View backButton = findViewById(R.id.backButton);
+        backButton.setVisibility(View.VISIBLE);
+        backButton.setOnClickListener(v -> finish());
+    }
+
+    // Helper method to check if both fields are filled
+    private void checkFieldsForEmptyValues() {
+        String keyName = nameInput.getText().toString().trim();
+        boolean isSpinnerValid = spinner.getSelectedItemPosition() != 0;
+
+        if (!keyName.isEmpty() && isSpinnerValid) {
+            saveKeyButton.setVisibility(View.VISIBLE);
+        } else {
+            saveKeyButton.setVisibility(View.INVISIBLE);
+        }
     }
 }

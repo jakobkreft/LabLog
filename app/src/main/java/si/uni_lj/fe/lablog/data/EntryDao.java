@@ -21,4 +21,7 @@ public interface EntryDao {
 
     @Delete
     void deleteEntry(Entry entry);
+
+    @Query("DELETE FROM entries")
+    void deleteAllEntries();
 }

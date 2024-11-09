@@ -30,26 +30,6 @@
             android:layout_width="match_parent"
             android:layout_height="90dp" />
 
-        <Button
-            android:id="@+id/SaveEntryButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="8dp"
-            android:layout_weight="1"
-            android:background="@drawable/entries_rounded_background"
-            android:text="Create Key"
-            android:textColor="@color/white"
-            android:textSize="22dp"
-            app:icon="@drawable/ic_pencil"
-            app:iconGravity="textStart"
-            app:iconTint="@color/white"
-            tools:layout_editor_absoluteX="24dp"
-            tools:layout_editor_absoluteY="273dp" />
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="30dp" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -105,6 +85,26 @@
             android:layout_height="50dp"
             android:entries="@array/key_type_options"
             android:paddingHorizontal="8dp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="30dp" />
+
+        <Button
+            android:id="@+id/SaveEntryButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/entries_rounded_background"
+            android:text="Create Key"
+            android:textColor="@color/white"
+            android:textSize="22dp"
+            app:icon="@drawable/ic_pencil"
+            app:iconGravity="textStart"
+            app:iconTint="@color/white"
+            tools:layout_editor_absoluteX="24dp"
+            tools:layout_editor_absoluteY="273dp" />
 
     </LinearLayout>
 

@@ -67,7 +67,47 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
         View backButton = findViewById(R.id.backButton);
         backButton.setVisibility(View.VISIBLE);
         backButton.setOnClickListener(v -> finish());
+
+        // Add the delete entries button functionality
+        findViewById(R.id.DeleteEntries).setOnClickListener(v -> showDeleteEntriesConfirmationDialog());
+
     }
+
+    private void showDeleteEntriesConfirmationDialog() {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Delete All Entries")
+                .setMessage("Are you sure you want to delete all entries? This action cannot be undone.")
+                .setPositiveButton("Delete", (dialog, which) -> deleteAllEntries())
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void deleteAllEntries() {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                AppDatabase db = MyApp.getDatabase();
+                EntryDao entryDao = db.entryDao();
+
+                // Delete all entries
+                entryDao.deleteAllEntries();
+
+                // Notify user and go directly to MainActivity
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "All entries deleted successfully.", Toast.LENGTH_SHORT).show();
+                    // Navigate to MainActivity
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(this, "Failed to delete entries.", Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+
 
     private void checkStoragePermissionAndExport() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
@@ -191,7 +231,14 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
                 }
 
                 importEntries(databaseJson.getJSONArray("entries"), entryDao, keyDao);
-                runOnUiThread(() -> Toast.makeText(this, "Data imported successfully.", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Data imported successfully.", Toast.LENGTH_SHORT).show();
+                    // Navigate to MainActivity
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                });
 
             } catch (Exception e) {
                 e.printStackTrace();
