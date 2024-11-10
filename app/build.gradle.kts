@@ -10,8 +10,8 @@ android {
         applicationId = "si.uni_lj.fe.lablog"
         minSdk = 29
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.4"
+        versionCode = 6
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -19,16 +19,16 @@ android {
     buildTypes {
         getByName("release")  {
             vcsInfo.include = false
-            isMinifyEnabled = false
+            //isMinifyEnabled = false
 
             // Enables code shrinking, obfuscation, and optimization for only
             // your project's release build type. Make sure to use a build
             // variant with `isDebuggable=false`.
-            //isMinifyEnabled = true
+            isMinifyEnabled = true
 
             // Enables resource shrinking, which is performed by the
             // Android Gradle plugin.
-            //isShrinkResources = true
+            isShrinkResources = true
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
