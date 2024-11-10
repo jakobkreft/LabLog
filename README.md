@@ -10,14 +10,16 @@
     alt="Get it on F-Droid"
     height="80">](https://f-droid.org/packages/si.uni_lj.fe.lablog)
 
+**LabLog** is a digital laboratory notebook designed to replace traditional paper notebooks in lab environments. It allows lab workers to easily record and manage sensor data, observations, and procedures, with automatic timestamping for each entry. LabLog supports both text and image-based data entries and integrates seamlessly with IoT sensors via MQTT for secure data storage. You have complete flexibility in how you use it, as you can create your own custom keys. **Each entry consists of key-value pairs that you define.**
 
-**LabLog** is a digital laboratory notebook designed for use in labs to replace traditional paper notebooks. It helps lab workers record and manage sensor data, observations, and procedures in an organized way, with automatic timestamping for each entry. LabLog supports both text and image-based data entry, and integrates with IoT sensors via MQTT to securely store data.
+LabLog is not just for lab use! **Individuals can also use it** and take advantage of its versatile logging capabilities for personal tasks. You can set your own custom keys and values, making it perfect for various use cases like fitness tracking, journaling, habit logging, or any other kind of data logging you need.
 
-### Features
-- **Automatic Timestamping**: Every entry is timestamped automatically.
-- **Text and Image Support**: Log numeric and textual data, as well as attach images to entries.
-- **IoT Integration**: Supports IoT sensor integration through the MQTT protocol.
-- **Data Organization**: Entries are easily searchable and categorized for later retrieval.
+**Features:**
+- **Automatic Timestamping**: Every entry is automatically timestamped.
+- **Text and Image Support**: Log both numeric and textual data, as well as images.
+- **IoT Integration**: Easily integrate with IoT sensors using the MQTT protocol.
+- **Data Organization**: Entries are searchable and categorized for easy retrieval.
+- **Import/Export**: Backup and restore your data with JSON file import/export.
 
 ### License
 
