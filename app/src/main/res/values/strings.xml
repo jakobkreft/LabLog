@@ -48,9 +48,9 @@
 \n\n
 Thank you!
 \n\n
-        LabLog is a digital laboratory notebook designed to replace traditional paper notebooks in lab environments. It allows lab workers to easily record and manage sensor data, observations, and procedures, with automatic timestamping for each entry. LabLog supports both text and image-based data entries and integrates seamlessly with IoT sensors via MQTT for secure data storage. You have complete flexibility in how you use it, as you can create your own custom keys. <b>Each entry consists of key-value pairs that you define.</b>
+LabLog is a digital laboratory notebook designed to replace traditional paper notebooks in lab environments. It allows lab workers to easily record and manage sensor data, observations, and procedures, with automatic timestamping for each entry. LabLog supports both text and image-based data entries and integrates seamlessly with IoT sensors via MQTT for secure data storage. You have complete flexibility in how you use it, as you can create your own custom keys. <b>Each entry consists of key-value pairs that you define.</b>
 \n\n
-        LabLog is not just for lab use! <b>Individuals can also use it</b> and take advantage of its versatile logging capabilities for personal tasks. You can set your own custom keys and values, making it perfect for various use cases like fitness tracking, journaling, habit logging, or any other kind of data logging you need.
+LabLog is not just for lab use! <b>Individuals can also use it</b> and take advantage of its versatile logging capabilities for personal tasks. You can set your own custom keys and values, making it perfect for various use cases like fitness tracking, journaling, habit logging, or any other kind of data logging you need.
 \n\n
 <b>Features:</b>\n
 - <b>Automatic Timestamping</b>: Every entry is automatically timestamped.\n
