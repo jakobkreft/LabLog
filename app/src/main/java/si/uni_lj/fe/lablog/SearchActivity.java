@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -301,5 +302,36 @@ public class SearchActivity extends AppCompatActivity {
             });
             dateLayout.startAnimation(fadeOut);
         }
+    }
+
+
+    // Helper method to hide the keyboard
+    private void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            view.clearFocus();
+        }
+    }
+
+    // Override the dispatchTouchEvent to detect taps outside the input fields
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            View currentFocus = getCurrentFocus();
+            if (currentFocus != null && (currentFocus instanceof EditText)) {
+                int[] location = new int[2];
+                currentFocus.getLocationOnScreen(location);
+                float x = event.getRawX() + currentFocus.getLeft() - location[0];
+                float y = event.getRawY() + currentFocus.getTop() - location[1];
+
+                if (x < currentFocus.getLeft() || x > currentFocus.getRight() ||
+                        y < currentFocus.getTop() || y > currentFocus.getBottom()) {
+                    hideKeyboard();
+                }
+            }
+        }
+        return super.dispatchTouchEvent(event);
     }
 }

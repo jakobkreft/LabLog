@@ -1,9 +1,12 @@
 package si.uni_lj.fe.lablog;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -48,11 +51,7 @@ public class NewKeyActivity extends AppCompatActivity {
         // Create an ArrayAdapter using the string array and custom spinner layouts
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.key_type_options, R.layout.spinner_item);
-
-        // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
-
-        // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
 
         // Set up listeners for EditText and Spinner
@@ -132,5 +131,35 @@ public class NewKeyActivity extends AppCompatActivity {
         } else {
             saveKeyButton.setVisibility(View.INVISIBLE);
         }
+    }
+
+    // Helper method to hide the keyboard
+    private void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            view.clearFocus();
+        }
+    }
+
+    // Override the dispatchTouchEvent to detect taps outside the input fields
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            View currentFocus = getCurrentFocus();
+            if (currentFocus != null && (currentFocus instanceof EditText)) {
+                int[] location = new int[2];
+                currentFocus.getLocationOnScreen(location);
+                float x = event.getRawX() + currentFocus.getLeft() - location[0];
+                float y = event.getRawY() + currentFocus.getTop() - location[1];
+
+                if (x < currentFocus.getLeft() || x > currentFocus.getRight() ||
+                        y < currentFocus.getTop() || y > currentFocus.getBottom()) {
+                    hideKeyboard();
+                }
+            }
+        }
+        return super.dispatchTouchEvent(event);
     }
 }
