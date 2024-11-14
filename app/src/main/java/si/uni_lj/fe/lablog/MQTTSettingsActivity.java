@@ -82,11 +82,27 @@ public class MQTTSettingsActivity extends AppCompatActivity {
         sendButton.setOnClickListener(v -> {
             String message = messageInput.getText().toString().trim();
             if (!message.isEmpty()) {
-                mqttHelper.publishMessage(message);
+                // Publish the message and handle the result
+                MQTTHelper.MqttStatus status = mqttHelper.publishMessage(message, errorMessage ->
+                        runOnUiThread(() -> Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()));
+
+                // Display the appropriate status to the user
+                if (status == MQTTHelper.MqttStatus.SUCCESS) {
+                    Toast.makeText(this, "Message sent successfully!", Toast.LENGTH_SHORT).show();
+                } else if (status == MQTTHelper.MqttStatus.DISABLED) {
+                    Toast.makeText(this, "MQTT is disabled in the settings.", Toast.LENGTH_SHORT).show();
+                } else if (status == MQTTHelper.MqttStatus.INVALID_SETTINGS) {
+                    Toast.makeText(this, "Invalid MQTT settings: Check broker, topic, username, and password.", Toast.LENGTH_LONG).show();
+                } else if (status == MQTTHelper.MqttStatus.CONNECTION_FAILED) {
+                    Toast.makeText(this, "Failed to connect to MQTT broker. Check your network and settings.", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "Failed to send message. Unknown error occurred.", Toast.LENGTH_LONG).show();
+                }
             } else {
                 Toast.makeText(this, "Please enter a message to send", Toast.LENGTH_SHORT).show();
             }
         });
+
 
         // Back button functionality
         View backButton = findViewById(R.id.backButton);

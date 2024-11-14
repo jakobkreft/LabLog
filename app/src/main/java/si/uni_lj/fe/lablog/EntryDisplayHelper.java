@@ -271,19 +271,21 @@ public class EntryDisplayHelper {
 
                         // Use MQTTHelper to resend the message
                         MQTTHelper mqttHelper = new MQTTHelper(context);
-                        MQTTHelper.MqttStatus status = mqttHelper.publishMessage(combinedMessage);
+                        MQTTHelper.MqttStatus status = mqttHelper.publishMessage(combinedMessage, errorMessage ->
+                                ((AppCompatActivity) context).runOnUiThread(() ->
+                                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()));
 
-                        // Provide feedback to the user
+                        // Provide feedback to the user based on the status
                         if (status == MQTTHelper.MqttStatus.SUCCESS) {
                             Toast.makeText(context, "Entry resent successfully.", Toast.LENGTH_SHORT).show();
                         } else if (status == MQTTHelper.MqttStatus.DISABLED) {
                             Toast.makeText(context, "MQTT is disabled in the settings.", Toast.LENGTH_SHORT).show();
                         } else if (status == MQTTHelper.MqttStatus.INVALID_SETTINGS) {
-                            Toast.makeText(context, "Invalid MQTT settings.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Invalid MQTT settings: Check broker, topic, username, and password.", Toast.LENGTH_LONG).show();
                         } else if (status == MQTTHelper.MqttStatus.CONNECTION_FAILED) {
-                            Toast.makeText(context, "Failed to connect to MQTT broker.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Failed to connect to MQTT broker. Check your network and settings.", Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(context, "Failed to resend entry.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Failed to resend entry. Unknown error occurred.", Toast.LENGTH_LONG).show();
                         }
                     } catch (JSONException e) {
                         Log.e("EntryDisplayHelper", "Error creating JSON message for entry: " + entry.id, e);

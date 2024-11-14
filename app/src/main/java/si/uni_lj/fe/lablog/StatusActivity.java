@@ -146,8 +146,9 @@ public class StatusActivity extends AppCompatActivity {
 
     private MQTTHelper.MqttStatus publishToMqtt(String message) throws MqttException {
         MQTTHelper mqttHelper = new MQTTHelper(this);
-        return mqttHelper.publishMessage(message); // Returns the result of the MQTT operation
+        return mqttHelper.publishMessage(message, errorMessage -> runOnUiThread(() -> appendStatus(errorMessage, true, false)));
     }
+
 
     // Utility method to append new status messages with color
     private void appendStatus(String newStatus, boolean isError, boolean isSuccess) {
