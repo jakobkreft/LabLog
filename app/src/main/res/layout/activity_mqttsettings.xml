@@ -200,7 +200,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:background="@drawable/settings_rounded_bg"
-                android:visibility="gone">
+                android:visibility="visible">
 
                 <TextView
                     android:id="@+id/passwordText"
@@ -231,7 +231,7 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/spinner_item_background"
                         android:imeOptions="actionDone"
-                        android:inputType="text"
+                        android:inputType="textPassword"
                         android:maxLines="1"
                         android:text="pass1"
                         android:textColor="#FFFFFF"

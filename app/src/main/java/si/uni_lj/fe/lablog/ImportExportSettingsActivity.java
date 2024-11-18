@@ -1,24 +1,14 @@
 package si.uni_lj.fe.lablog;
 
-import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.OpenableColumns;
-import android.util.Log;
-import android.view.View;
+import android.provider.MediaStore;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
@@ -27,11 +17,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -44,33 +33,25 @@ import si.uni_lj.fe.lablog.data.KeyDao;
 
 public class ImportExportSettingsActivity extends AppCompatActivity {
 
-    private static final int REQUEST_WRITE_STORAGE = 1;
     private static final int REQUEST_IMPORT_FILE = 2;
-    private File exportedFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_import_export_settings);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            v.setPadding(insets.getInsets(WindowInsetsCompat.Type.systemBars()).left,
+                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
+                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).right,
+                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom);
             return insets;
         });
 
-        findViewById(R.id.Export).setOnClickListener(v -> checkStoragePermissionAndExport());
+        findViewById(R.id.Export).setOnClickListener(v -> exportDatabaseToJSON());
         findViewById(R.id.Import).setOnClickListener(v -> startFilePickerForImport());
-
-
-        // Back button functionality
-        View backButton = findViewById(R.id.backButton);
-        backButton.setVisibility(View.VISIBLE);
-        backButton.setOnClickListener(v -> finish());
-
-        // Add the delete entries button functionality
         findViewById(R.id.DeleteEntries).setOnClickListener(v -> showDeleteEntriesConfirmationDialog());
-
     }
 
     private void showDeleteEntriesConfirmationDialog() {
@@ -88,13 +69,10 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
                 AppDatabase db = MyApp.getDatabase();
                 EntryDao entryDao = db.entryDao();
 
-                // Delete all entries
                 entryDao.deleteAllEntries();
 
-                // Notify user and go directly to MainActivity
                 runOnUiThread(() -> {
                     Toast.makeText(this, "All entries deleted successfully.", Toast.LENGTH_SHORT).show();
-                    // Navigate to MainActivity
                     Intent intent = new Intent(this, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
@@ -105,21 +83,6 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
                 runOnUiThread(() -> Toast.makeText(this, "Failed to delete entries.", Toast.LENGTH_SHORT).show());
             }
         });
-    }
-
-
-
-    private void checkStoragePermissionAndExport() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
-            } else {
-                exportDatabaseToJSON();
-            }
-        } else {
-            exportDatabaseToJSON();
-        }
     }
 
     private void exportDatabaseToJSON() {
@@ -167,40 +130,28 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
     }
 
     private void saveJsonToFile(String jsonString) {
-        File exportDir = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-                ? new File(getExternalFilesDir(null), "LabLogExports")
-                : new File(Environment.getExternalStorageDirectory(), "LabLogExports");
+        try {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(MediaStore.Downloads.DISPLAY_NAME, "LabLogExport.json");
+            contentValues.put(MediaStore.Downloads.MIME_TYPE, "application/json");
 
-        if (!exportDir.exists() && !exportDir.mkdirs()) {
-            runOnUiThread(() -> Toast.makeText(this, "Failed to create export directory.", Toast.LENGTH_SHORT).show());
-            return;
-        }
+            Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
 
-        exportedFile = new File(exportDir, "LabLogExport.json");
-        try (FileWriter writer = new FileWriter(exportedFile)) {
-            writer.write(jsonString);
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Data exported successfully", Toast.LENGTH_SHORT).show();
-                shareExportedFile();
-            });
+            if (uri == null) {
+                throw new IOException("Failed to create new MediaStore record.");
+            }
+
+            try (OutputStream outputStream = getContentResolver().openOutputStream(uri)) {
+                if (outputStream == null) {
+                    throw new IOException("Failed to open output stream.");
+                }
+                outputStream.write(jsonString.getBytes());
+                runOnUiThread(() -> Toast.makeText(this, "Data exported successfully to Downloads.", Toast.LENGTH_LONG).show());
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
-            runOnUiThread(() -> Toast.makeText(this, "Failed to write export file.", Toast.LENGTH_SHORT).show());
-        }
-    }
-
-    private void shareExportedFile() {
-        if (exportedFile != null && exportedFile.exists()) {
-            Uri fileUri = FileProvider.getUriForFile(this, "si.uni_lj.fe.lablog.fileprovider", exportedFile);
-
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("application/json");
-            shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            startActivity(Intent.createChooser(shareIntent, "Share exported file"));
-        } else {
-            Toast.makeText(this, "No file available to share. Please export first.", Toast.LENGTH_SHORT).show();
+            runOnUiThread(() -> Toast.makeText(this, "Failed to save file to Downloads.", Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -233,7 +184,6 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
                 importEntries(databaseJson.getJSONArray("entries"), entryDao, keyDao);
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Data imported successfully.", Toast.LENGTH_SHORT).show();
-                    // Navigate to MainActivity
                     Intent intent = new Intent(this, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
@@ -301,18 +251,6 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
                 if (fileUri != null) {
                     importDatabaseFromJSON(fileUri);
                 }
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_WRITE_STORAGE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                exportDatabaseToJSON();
-            } else {
-                Toast.makeText(this, "Permission required to export data.", Toast.LENGTH_SHORT).show();
             }
         }
     }
