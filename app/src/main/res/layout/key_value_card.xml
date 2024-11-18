@@ -89,7 +89,7 @@
                         android:id="@+id/textInputEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="paylaod value"
+                        android:hint="payload value"
                         android:textColor="#FFFFFF"
                         android:textColorHint="#6D6D6D" />
 
