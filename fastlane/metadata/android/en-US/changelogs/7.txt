@@ -1,0 +1,4 @@
+Bug fix:
+- Export data on older android apk
+- mqtt bad port exception
+- ResendButton now also uses StatusActivity to simplify and reuse code.
