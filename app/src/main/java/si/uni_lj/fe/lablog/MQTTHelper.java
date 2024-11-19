@@ -40,25 +40,29 @@ public class MQTTHelper {
         String username = sharedPreferences.getString("username", "");
         String password = sharedPreferences.getString("password", "");
 
-        // Check if MQTT is disabled
         if (!mqttEnabled) {
             errorCallback.onError("MQTT is disabled.");
             return MqttStatus.DISABLED;
         }
 
-        // Check if broker or topic is empty
         if (broker.isEmpty() || topic.isEmpty()) {
             errorCallback.onError("Invalid MQTT settings: Broker or topic is empty.");
             return MqttStatus.INVALID_SETTINGS;
         }
 
         try {
-            // Initialize the MQTT client
+            // Validate the broker URI
+            if (!broker.startsWith("tcp://") && !broker.startsWith("ssl://")) {
+                errorCallback.onError("Invalid broker URI. It must start with 'tcp://' or 'ssl://'.");
+                return MqttStatus.INVALID_SETTINGS;
+            }
+
             MqttClient mqttClient = new MqttClient(broker, MqttClient.generateClientId(), null);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
+            options.setConnectionTimeout(6); // Set a 10-second timeout for connection attempts
+            options.setKeepAliveInterval(12); // Optional: Set a keep-alive interval
 
-            // Set username and password if authentication is enabled
             if (authEnabled) {
                 if (!username.isEmpty() && !password.isEmpty()) {
                     options.setUserName(username);
@@ -69,27 +73,42 @@ public class MQTTHelper {
                 }
             }
 
-            // Connect to the MQTT broker
-            mqttClient.connect(options);
-            errorCallback.onError("Connected to MQTT broker: " + broker);
+            try {
+                mqttClient.connect(options);
+            } catch (MqttException e) {
+                switch (e.getReasonCode()) {
+                    case MqttException.REASON_CODE_SERVER_CONNECT_ERROR:
+                        errorCallback.onError("Connection to the broker failed: Port might be incorrect or broker unreachable.");
+                        return MqttStatus.CONNECTION_FAILED;
+                    case MqttException.REASON_CODE_BROKER_UNAVAILABLE:
+                        errorCallback.onError("Broker unavailable: Check if the broker is running.");
+                        return MqttStatus.CONNECTION_FAILED;
+                    default:
+                        errorCallback.onError("Connection failed: " + e.getMessage());
+                        return MqttStatus.CONNECTION_FAILED;
+                }
+            }
 
-            // Create and publish the message
+            errorCallback.onError("INFO: Connected to MQTT broker: " + broker);
+
+            // Publish the message
             MqttMessage mqttMessage = new MqttMessage(message.getBytes());
             mqttMessage.setQos(1);
             mqttClient.publish(topic, mqttMessage);
 
-            // Disconnect the client
             mqttClient.disconnect();
-            errorCallback.onError("Message published successfully to topic: " + topic);
+            errorCallback.onError("INFO: Message published successfully to topic: " + topic);
             return MqttStatus.SUCCESS;
 
+        } catch (IllegalArgumentException e) {
+            errorCallback.onError("Invalid broker URI: " + e.getMessage());
+            return MqttStatus.INVALID_SETTINGS;
         } catch (MqttException e) {
-            // Report the error using the callback
             errorCallback.onError("MQTT publish failed: " + e.getMessage());
-            errorCallback.onError("Reason Code: " + e.getReasonCode());
-            errorCallback.onError("Cause: " + e.getCause());
-            return e.getReasonCode() == MqttException.REASON_CODE_SERVER_CONNECT_ERROR ?
-                    MqttStatus.CONNECTION_FAILED : MqttStatus.PUBLISH_FAILED;
+            return e.getReasonCode() == MqttException.REASON_CODE_SERVER_CONNECT_ERROR
+                    ? MqttStatus.CONNECTION_FAILED
+                    : MqttStatus.PUBLISH_FAILED;
         }
     }
+
 }

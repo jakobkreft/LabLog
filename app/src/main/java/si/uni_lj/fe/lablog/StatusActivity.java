@@ -51,18 +51,26 @@ public class StatusActivity extends AppCompatActivity {
         // Retrieve the individual fields from the Intent
         String payload = getIntent().getStringExtra("payload");
         long timestamp = getIntent().getLongExtra("timestamp", 0);
+        boolean isResend = getIntent().getBooleanExtra("isResend", false);
 
         // Start the background process to save entry and publish to MQTT
-        handleEntryProcess(payload, timestamp);
+        handleEntryProcess(payload, timestamp, isResend);
     }
 
-    private void handleEntryProcess(String payload, long timestamp) {
-        appendStatus("Saving entry to database...", false, false);
+    private void handleEntryProcess(String payload, long timestamp, boolean isResend) {
+        if (!isResend) {
+            appendStatus("Saving entry to database...", false, false);
+        }
 
         new Thread(() -> {
-            boolean dbSuccess = saveEntryToDatabase(payload, timestamp);
+            boolean dbSuccess = true;
 
-            runOnUiThread(() -> appendStatus(dbSuccess ? "Database save successful." : "Database save failed.", !dbSuccess, dbSuccess));
+            // Skip database saving if this is a resend operation
+            if (!isResend) {
+                dbSuccess = saveEntryToDatabase(payload, timestamp);
+                boolean finalDbSuccess = dbSuccess; // Create a final copy
+                runOnUiThread(() -> appendStatus(finalDbSuccess ? "Database save successful." : "Database save failed.", !finalDbSuccess, finalDbSuccess));
+            }
 
             runOnUiThread(() -> appendStatus("Checking MQTT settings...", false, false));
 
@@ -88,7 +96,7 @@ public class StatusActivity extends AppCompatActivity {
                     if (finalMqttStatus == MQTTHelper.MqttStatus.SUCCESS) {
                         appendStatus("Entry published to MQTT successfully!", false, true);
                     } else if (finalMqttStatus == MQTTHelper.MqttStatus.DISABLED) {
-                        appendStatus("MQTT was disabled in the settings.", false, false);
+                        appendStatus("MQTT was disabled in the settings. Skipping MQTT publishing.", false, true);
                     } else if (finalMqttStatus == MQTTHelper.MqttStatus.INVALID_SETTINGS) {
                         appendStatus("MQTT publish failed: Invalid broker or topic settings.", true, false);
                     } else if (finalMqttStatus == MQTTHelper.MqttStatus.CONNECTION_FAILED) {
@@ -100,8 +108,8 @@ public class StatusActivity extends AppCompatActivity {
                     appendStatus("Database save failed.", true, false);
                 }
 
-                // Automatically finish the activity if there are no errors
-                if (hasErrors) {
+                // Automatically finish the activity if there are no errors or MQTT is disabled
+                if (hasErrors && finalMqttStatus != MQTTHelper.MqttStatus.DISABLED) {
                     confirmButton.setVisibility(View.VISIBLE);
                 } else {
                     finishProcess();
@@ -109,6 +117,7 @@ public class StatusActivity extends AppCompatActivity {
             });
         }).start();
     }
+
 
     private String createFormattedMessage(String payload, long timestamp) {
         try {
@@ -148,25 +157,31 @@ public class StatusActivity extends AppCompatActivity {
         MQTTHelper mqttHelper = new MQTTHelper(this);
         return mqttHelper.publishMessage(message, errorMessage -> runOnUiThread(() -> appendStatus(errorMessage, true, false)));
     }
-
-
-    // Utility method to append new status messages with color
     private void appendStatus(String newStatus, boolean isError, boolean isSuccess) {
         SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(statusTextView.getText());
 
-        SpannableString spannableString = new SpannableString(newStatus + "\n");
-        if (isError) {
-            spannableString.setSpan(new ForegroundColorSpan(Color.RED), 0, spannableString.length(), 0);
-            hasErrors = true; // Set the flag if there is an error
-        } else if (isSuccess) {
+        SpannableString spannableString;
+        if (newStatus.startsWith("INFO: ")) {
+            // Remove the "INFO: " tag and treat it as a success
+            spannableString = new SpannableString(newStatus.replace("INFO: ", "") + "\n");
             spannableString.setSpan(new ForegroundColorSpan(Color.GREEN), 0, spannableString.length(), 0);
         } else {
-            spannableString.setSpan(new ForegroundColorSpan(Color.WHITE), 0, spannableString.length(), 0);
+            // Treat other messages as per isError flag
+            spannableString = new SpannableString(newStatus + "\n");
+            if (isError) {
+                spannableString.setSpan(new ForegroundColorSpan(Color.RED), 0, spannableString.length(), 0);
+                hasErrors = true; // Set the flag if there is an error
+            } else if (isSuccess) {
+                spannableString.setSpan(new ForegroundColorSpan(Color.GREEN), 0, spannableString.length(), 0);
+            } else {
+                spannableString.setSpan(new ForegroundColorSpan(Color.WHITE), 0, spannableString.length(), 0);
+            }
         }
 
         spannableStringBuilder.append(spannableString);
         statusTextView.setText(spannableStringBuilder);
     }
+
 
     private void finishProcess() {
         Intent returnIntent = new Intent();

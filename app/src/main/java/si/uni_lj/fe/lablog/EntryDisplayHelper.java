@@ -249,7 +249,6 @@ public class EntryDisplayHelper {
             Toast.makeText(context, "Error occurred while duplicating entry.", Toast.LENGTH_SHORT).show();
         }
     }
-
     private void resendEntry(Entry entry) {
         // Create confirmation dialog
         new AlertDialog.Builder(context)
@@ -257,42 +256,15 @@ public class EntryDisplayHelper {
                 .setMessage("Are you sure you want to resend this entry? This will republish the data over MQTT.")
                 .setPositiveButton("Resend", (dialog, which) -> {
                     try {
-                        // Get the entry payload and timestamp
-                        String payload = entry.payload;
-                        long timestamp = entry.timestamp;
-
-                        // Create a JSON object to include both payload and timestamp
-                        JSONObject messageObject = new JSONObject();
-                        messageObject.put("timestamp", timestamp);
-                        messageObject.put("data", new JSONObject(payload));
-
-                        // Convert the JSON object to a string to send over MQTT
-                        String combinedMessage = messageObject.toString();
-
-                        // Use MQTTHelper to resend the message
-                        MQTTHelper mqttHelper = new MQTTHelper(context);
-                        MQTTHelper.MqttStatus status = mqttHelper.publishMessage(combinedMessage, errorMessage ->
-                                ((AppCompatActivity) context).runOnUiThread(() ->
-                                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()));
-
-                        // Provide feedback to the user based on the status
-                        if (status == MQTTHelper.MqttStatus.SUCCESS) {
-                            Toast.makeText(context, "Entry resent successfully.", Toast.LENGTH_SHORT).show();
-                        } else if (status == MQTTHelper.MqttStatus.DISABLED) {
-                            Toast.makeText(context, "MQTT is disabled in the settings.", Toast.LENGTH_SHORT).show();
-                        } else if (status == MQTTHelper.MqttStatus.INVALID_SETTINGS) {
-                            Toast.makeText(context, "Invalid MQTT settings: Check broker, topic, username, and password.", Toast.LENGTH_LONG).show();
-                        } else if (status == MQTTHelper.MqttStatus.CONNECTION_FAILED) {
-                            Toast.makeText(context, "Failed to connect to MQTT broker. Check your network and settings.", Toast.LENGTH_LONG).show();
-                        } else {
-                            Toast.makeText(context, "Failed to resend entry. Unknown error occurred.", Toast.LENGTH_LONG).show();
-                        }
-                    } catch (JSONException e) {
-                        Log.e("EntryDisplayHelper", "Error creating JSON message for entry: " + entry.id, e);
-                        Toast.makeText(context, "Error occurred while preparing the message.", Toast.LENGTH_SHORT).show();
+                        // Start StatusActivity for resending
+                        Intent intent = new Intent(context, StatusActivity.class);
+                        intent.putExtra("payload", entry.payload);
+                        intent.putExtra("timestamp", entry.timestamp);
+                        intent.putExtra("isResend", true); // Add a flag to indicate resending
+                        context.startActivity(intent);
                     } catch (Exception e) {
-                        Log.e("EntryDisplayHelper", "Error resending entry: " + entry.id, e);
-                        Toast.makeText(context, "Error occurred while resending entry.", Toast.LENGTH_SHORT).show();
+                        Log.e("EntryDisplayHelper", "Error starting StatusActivity for resending entry: " + entry.id, e);
+                        Toast.makeText(context, "Failed to resend entry: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Cancel", null)
