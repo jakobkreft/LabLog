@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.InputType;
 import android.util.Base64;
@@ -40,10 +41,13 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.textfield.TextInputEditText;
 
+
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -124,8 +128,21 @@ public class NewEntryActivity extends AppCompatActivity {
                             }
                         }
                     });
+    private final ActivityResultLauncher<Intent> pickImageLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri selectedImageUri = result.getData().getData();
+                    if (selectedImageUri != null) {
+                        currentImageUri = selectedImageUri;
 
-    private MQTTHelper mqttHelper;
+                        // Downscale the selected image
+                        downscaleImage();
+                    } else {
+                        Toast.makeText(this, "Failed to load image from gallery.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,9 +157,6 @@ public class NewEntryActivity extends AppCompatActivity {
         // Initialize the DAO
         keyDao = MyApp.getDatabase().keyDao();
         // Initialize the DAO
-
-        // Initialize MQTT Helper
-        mqttHelper = new MQTTHelper(this);
 
         // Initialize the selected keys list
         selectedKeysList = new ArrayList<>();
@@ -496,8 +510,10 @@ public class NewEntryActivity extends AppCompatActivity {
 
                 imageButton.setOnClickListener(v -> {
                     currentKeyForImage = keyName;
-                    launchCamera();
+                    showImageSourceDialog();
                 });
+
+
                 break;
             default:
                 Log.e("NewEntryActivity", "Unknown key type: " + keyType);
@@ -518,6 +534,23 @@ public class NewEntryActivity extends AppCompatActivity {
         onResume();
     }
 
+    private void showImageSourceDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Select Image Source")
+                .setMessage("Choose how to add an image.")
+                .setPositiveButton("Take Photo", (dialog, which) -> launchCamera())
+                .setNegativeButton("Choose from Gallery", (dialog, which) -> openGallery())
+                .setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        pickImageLauncher.launch(intent);
+    }
+
+
+
     private void removeCard(View cardView, String keyName) {
         // Remove the card view from the LinearLayout
         linearLayout.removeView(cardView);
@@ -532,21 +565,15 @@ public class NewEntryActivity extends AppCompatActivity {
         onResume();
     }
 
-
     private void launchCamera() {
-        // Check if the camera permission is granted
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            // Request the camera permission
             requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
         } else {
             try {
-                // Create a file to store the image
                 File imageFile = createImageFile();
                 if (imageFile != null) {
-                    // Save the URI for later use in the launcher callback
                     currentImageUri = FileProvider.getUriForFile(this, "si.uni_lj.fe.lablog.fileprovider", imageFile);
 
-                    // Launch the camera intent with the URI
                     Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentImageUri);
                     takePictureLauncher.launch(cameraIntent);
@@ -570,66 +597,90 @@ public class NewEntryActivity extends AppCompatActivity {
 
     private void downscaleImage() {
         try {
-            // Check if the URI and file are valid
             if (currentImageUri == null) {
                 throw new IOException("Invalid image URI.");
             }
 
-            // Load the full-size image from the URI
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            Bitmap originalBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(currentImageUri), null, options);
+            // Copy the URI to a private file location if it's from gallery
+            File imageFile = copyUriToFile(currentImageUri);
 
-            if (originalBitmap == null) {
-                throw new IOException("Failed to decode image from URI.");
+            if (imageFile == null || !imageFile.exists()) {
+                throw new IOException("Failed to copy image to private storage.");
             }
 
-            // Calculate aspect ratio-preserving dimensions for HD resolution
+            // Decode the image from the file
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            Bitmap originalBitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath(), options);
+
+            if (originalBitmap == null) {
+                throw new IOException("Failed to decode image from file.");
+            }
+
+            // Calculate aspect ratio-preserving dimensions
             int originalWidth = originalBitmap.getWidth();
             int originalHeight = originalBitmap.getHeight();
-            int newWidth = 1000; // target width
+            int newWidth = 1000; // Target width
             int newHeight = (originalHeight * newWidth) / originalWidth;
 
-            // If the height exceeds 1080, downscale using height as the reference
             if (newHeight > 1000) {
-                newHeight = 1000; // target height
+                newHeight = 1000; // Target height
                 newWidth = (originalWidth * newHeight) / originalHeight;
             }
 
-            // Downscale the bitmap
             Bitmap scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, true);
 
-            // Save the downscaled image back to the file
-            try (OutputStream out = getContentResolver().openOutputStream(currentImageUri)) {
-                if (out != null) {
-                    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 70, out); // Use JPEG format with 85% quality
-                } else {
-                    throw new IOException("Failed to get output stream.");
-                }
+            // Save the scaled image to a temporary file
+            File scaledImageFile = createTempImageFile();
+            try (OutputStream out = new FileOutputStream(scaledImageFile)) {
+                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 70, out);
             }
 
-            // Update the image in the ImageButton after downscaling
+            // Update the ImageButton with the scaled image
             ImageButton imageButton = linearLayout.findViewWithTag(currentKeyForImage);
             if (imageButton != null) {
                 imageButton.setImageBitmap(scaledBitmap);
-
-                // Adjust layout settings for the image button
                 imageButton.setScaleType(ImageButton.ScaleType.FIT_CENTER);
                 imageButton.getLayoutParams().width = LinearLayout.LayoutParams.MATCH_PARENT;
                 imageButton.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
                 imageButton.setAdjustViewBounds(true);
                 imageButton.setBackground(ContextCompat.getDrawable(this, R.color.black));
+
+                // Store the URI of the scaled image
+                imageUriMap.put(currentKeyForImage, Uri.fromFile(scaledImageFile));
             }
 
-            Toast.makeText(this, "Image captured and downscaled successfully", Toast.LENGTH_SHORT).show();
-
+            Toast.makeText(this, "Image processed successfully.", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Error processing image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Unexpected error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+    private File copyUriToFile(Uri uri) throws IOException {
+        File destFile = createTempImageFile();
+        try (InputStream in = getContentResolver().openInputStream(uri);
+             OutputStream out = new FileOutputStream(destFile)) {
+            if (in == null) throw new IOException("Failed to open input stream for URI.");
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
+        return destFile;
+    }
+
+
+
+    private File createTempImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "TEMP_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(imageFileName, ".jpg", storageDir);
+    }
+
+
 
     private void saveEntry() {
         try {
@@ -718,4 +769,3 @@ public class NewEntryActivity extends AppCompatActivity {
     }
 
 }
-
