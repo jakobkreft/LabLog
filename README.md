@@ -8,7 +8,7 @@
 
 [<img src="https://f-droid.org/badge/get-it-on.png"
     alt="Get it on F-Droid"
-    height="80">](https://f-droid.org/packages/si.uni_lj.fe.lablog)
+    height="80">](https://f-droid.org/packages/si.uni_lj.fe.lablog) [<img height="80" src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png"/>](https://github.com/jakobkreft/LabLog/releases/latest)
 
 **LabLog** is a digital laboratory notebook designed to replace traditional paper notebooks in lab environments. It allows lab workers to easily record and manage sensor data, observations, and procedures, with automatic timestamping for each entry. LabLog supports both text and image-based data entries and integrates seamlessly with IoT sensors via MQTT for secure data storage. You have complete flexibility in how you use it, as you can create your own custom keys. **Each entry consists of key-value pairs that you define.**
 
