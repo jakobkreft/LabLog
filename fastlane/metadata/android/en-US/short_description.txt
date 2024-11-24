@@ -1,2 +1,1 @@
-A digital lab notebook with automatic timestamping
-
+A digital lab notebook with MQTT
