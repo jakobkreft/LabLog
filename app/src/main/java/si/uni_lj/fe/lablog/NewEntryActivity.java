@@ -537,7 +537,7 @@ public class NewEntryActivity extends AppCompatActivity {
     private void showImageSourceDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Select Image Source")
-                .setMessage("Choose how to add an image.")
+                .setMessage("Choose an option.")
                 .setPositiveButton("Take Photo", (dialog, which) -> launchCamera())
                 .setNegativeButton("Choose from Gallery", (dialog, which) -> openGallery())
                 .setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss())

@@ -1,0 +1,2 @@
+New feature:
+- Select image from gallery or take new photo.
