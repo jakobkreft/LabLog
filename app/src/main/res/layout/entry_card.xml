@@ -12,6 +12,7 @@
         android:layout_margin="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:textIsSelectable="true"
         android:background="@android:color/white"
         app:cardBackgroundColor="@color/dark_card_bg"
         app:cardCornerRadius="16dp"
@@ -50,7 +51,8 @@
                 android:text="@string/timestamp"
                 android:textColor="@color/save_button"
                 android:textSize="16sp"
-                android:visibility="visible" />
+                android:visibility="visible"
+                android:textIsSelectable="true"/>
 
 
             <TextView

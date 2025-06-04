@@ -11,4 +11,5 @@
     android:paddingVertical="10dp"
     android:textColor="@color/white"
     android:textSize="16sp"
-    app:layout_alignSelf="center" />
+    app:layout_alignSelf="center"
+    android:textIsSelectable="true"/>
