@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# ---- Keep Paho MQTT logging infrastructure ----
+-keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger { *; }
+-keep class org.eclipse.paho.client.mqttv3.logging.LoggerFactory { *; }
+-keep class org.eclipse.paho.client.mqttv3.** { *; }          # core + internals
+-dontwarn org.eclipse.paho.client.mqttv3.**                   # silence other warnings
