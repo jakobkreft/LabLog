@@ -39,6 +39,8 @@ public class MQTTHelper {
         boolean authEnabled = sharedPreferences.getBoolean("auth_enabled", false);
         String username = sharedPreferences.getString("username", "");
         String password = sharedPreferences.getString("password", "");
+        boolean retainEnabled = sharedPreferences.getBoolean("retain_enabled", false);
+
 
         if (!mqttEnabled) {
             errorCallback.onError("MQTT is disabled.");
@@ -94,6 +96,7 @@ public class MQTTHelper {
             // Publish the message
             MqttMessage mqttMessage = new MqttMessage(message.getBytes());
             mqttMessage.setQos(1);
+            mqttMessage.setRetained(retainEnabled);
             mqttClient.publish(topic, mqttMessage);
 
             mqttClient.disconnect();

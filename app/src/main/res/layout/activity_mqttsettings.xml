@@ -239,6 +239,16 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <Switch
+                android:id="@+id/retainSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/settings_rounded_bg"
+                android:padding="22dp"
+                android:text="Enable Retain Message"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -294,6 +304,8 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:srcCompat="@drawable/ic_send" />
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
             <Space
                 android:layout_width="match_parent"

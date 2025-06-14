@@ -32,6 +32,7 @@ public class MQTTSettingsActivity extends AppCompatActivity {
     private Button saveSettingsButton;
     private EditText messageInput;
     private ImageButton sendButton;
+    private Switch retainSwitch;
 
     private MQTTHelper mqttHelper;
 
@@ -58,6 +59,7 @@ public class MQTTSettingsActivity extends AppCompatActivity {
         saveSettingsButton = findViewById(R.id.SaveSettingsButton);
         messageInput = findViewById(R.id.messageInput);
         sendButton = findViewById(R.id.sendButton);
+        retainSwitch = findViewById(R.id.retainSwitch);
 
         // Initialize MQTT Helper
         mqttHelper = new MQTTHelper(this);
@@ -120,6 +122,9 @@ public class MQTTSettingsActivity extends AppCompatActivity {
         boolean authEnabled = sharedPreferences.getBoolean("auth_enabled", false);
         String username = sharedPreferences.getString("username", "");
         String password = sharedPreferences.getString("password", "");
+        boolean retainEnabled = sharedPreferences.getBoolean("retain_enabled", false);
+        retainSwitch.setChecked(retainEnabled);
+
 
         brokerInput.setText(broker);
         topicInput.setText(topic);
@@ -145,6 +150,7 @@ public class MQTTSettingsActivity extends AppCompatActivity {
         boolean authEnabled = authSwitch.isChecked();
         String username = usernameInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
+        boolean retainEnabled = retainSwitch.isChecked();
 
         if (mqttEnabled && (broker.isEmpty() || topic.isEmpty())) {
             Toast.makeText(this, "Please provide both broker address and topic.", Toast.LENGTH_SHORT).show();
@@ -166,6 +172,7 @@ public class MQTTSettingsActivity extends AppCompatActivity {
         editor.putBoolean("auth_enabled", authEnabled);
         editor.putString("username", authEnabled ? username : "");
         editor.putString("password", authEnabled ? password : "");
+        editor.putBoolean("retain_enabled", retainEnabled);
 
         editor.apply();
 
