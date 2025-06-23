@@ -1,0 +1,1 @@
+- Bug fix: single tap for key select, key names are now not selectable
