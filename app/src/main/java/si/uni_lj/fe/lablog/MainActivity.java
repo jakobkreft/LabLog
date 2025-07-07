@@ -21,9 +21,12 @@ import com.google.android.flexbox.FlexboxLayout;
 import org.eclipse.paho.android.service.BuildConfig;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -143,21 +146,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+// MainActivity.java
 
     private void loadAndDisplayTimestamps() {
         executorService.execute(() -> {
-            // Fetch all entries from the database
             List<Entry> entries = entryDao.getAllEntries();
-            Map<String, String> keyTypeMap = new HashMap<>();
+            Map<String, String> keyTypeMap = new EntryDisplayHelper(this, inflater)
+                    .loadKeyTypeMap(keyDao);
 
-            // Load key types using the helper
-            EntryDisplayHelper helper = new EntryDisplayHelper(this, inflater);
-            keyTypeMap = helper.loadKeyTypeMap(keyDao);
-
-            // Post to the main thread to update UI
-            Map<String, String> finalKeyTypeMap = keyTypeMap;
             runOnUiThread(() -> {
-                // Add "Recent entries" text outside the card
+                // Header
                 TextView recentEntriesTextView = new TextView(MainActivity.this);
                 recentEntriesTextView.setText(R.string.recent_entries);
                 recentEntriesTextView.setTextSize(18);
@@ -165,116 +163,73 @@ public class MainActivity extends AppCompatActivity {
                 recentEntriesTextView.setPadding(16, 16, 16, 16);
                 linearLayout.addView(recentEntriesTextView);
 
-                // Inflate the entry card layout
+                // Card container
                 View cardView = inflater.inflate(R.layout.entry_card, linearLayout, false);
-
-                // Set an OnClickListener to the card to open LatestEntryActivity
-                cardView.setOnClickListener(v -> {
-                    Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-                    startActivity(intent);
-                });
-
-                // Get the FlexboxLayout where payloads will be added
                 FlexboxLayout flexboxContainer = cardView.findViewById(R.id.flexboxContainer);
-
-                // Clear any existing views in the container
+                cardView.findViewById(R.id.timestampTextView)
+                        .setVisibility(View.GONE);
                 flexboxContainer.removeAllViews();
 
-                // Hide the timestampTextView specifically for this card
-                TextView timestampTextView = cardView.findViewById(R.id.timestampTextView);
-                if (timestampTextView != null) {
-                    timestampTextView.setVisibility(View.GONE);
-                }
-
-                // Determine how many entries to show (up to 15)
                 int entriesToShow = Math.min(entries.size(), 15);
-
-                // Iterate through the latest 5 entries and create a TextView for each payload snippet
                 for (int i = 0; i < entriesToShow; i++) {
                     Entry entry = entries.get(i);
 
-                    // Inflate the TextView from the entry_card layout
-                    TextView payloadTextView = (TextView) inflater.inflate(R.layout.quick_value_view, flexboxContainer, false);
-
-                    // Create a snippet of the payload with a maximum of 40 characters
-                    StringBuilder snippetBuilder = new StringBuilder();
-                    int remainingChars = 40;
-
+                    // build snippet ≤40 chars
+                    StringBuilder sb = new StringBuilder();
+                    int rem = 40;
                     try {
-                        JSONObject jsonObject = new JSONObject(entry.payload);
-                        Iterator<String> keys = jsonObject.keys();
-
-                        while (keys.hasNext() && remainingChars > 0) {
+                        JSONObject obj = new JSONObject(entry.payload);
+                        Iterator<String> keys = obj.keys();
+                        while (keys.hasNext() && rem > 0) {
                             String key = keys.next();
-                            String value = jsonObject.getString(key);
-
-                            // Check if the key is of type "image"
-                            String type = finalKeyTypeMap.get(key);
+                            String v = obj.getString(key);
+                            String type = keyTypeMap.get(key);
                             if ("image".equalsIgnoreCase(type)) {
-                                value = "(img)";
-                            } else {
-                                // Truncate the value to 10 characters max
-                                if (value.length() > 14) {
-                                    value = value.substring(0, 14) + "...";
-                                }
+                                v = "(img)";
+                            } else if (v.length() > 14) {
+                                v = v.substring(0, 14) + "...";
                             }
-
-                            // Ensure the total length does not exceed 40 characters
-                            if (snippetBuilder.length() + value.length() + 2 > 40) { // +2 for ", " after each value
-                                snippetBuilder.append("...");
+                            if (sb.length() + v.length() + 2 > 40) {
+                                sb.append("...");
                                 break;
                             }
-
-                            // Append the truncated value or "(img)" to the snippet
-                            snippetBuilder.append(value);
-
-                            remainingChars = 40 - snippetBuilder.length();
-
-                            if (keys.hasNext() && remainingChars > 2) {
-                                snippetBuilder.append(", ");
-                            }
+                            sb.append(v);
+                            rem = 40 - sb.length();
+                            if (keys.hasNext() && rem > 2) sb.append(", ");
                         }
                     } catch (Exception e) {
-                        Log.e("MainActivity", "Error parsing JSON for entry " + entry.id, e);
+                        Log.e("MainActivity", "JSON error", e);
                     }
 
-                    // Set the text to the TextView
-                    payloadTextView.setText(snippetBuilder.toString());
-
-                    // Add the TextView to the FlexboxLayout
-                    flexboxContainer.addView(payloadTextView);
+                    // inflate & set up click listener
+                    TextView tv = (TextView) inflater.inflate(
+                            R.layout.quick_value_view, flexboxContainer, false);
+                    final String filterTs = String.valueOf(entry.timestamp);
+                    tv.setText(sb.toString());
+                    String formattedTs = new SimpleDateFormat(
+                            "HH:mm:ss dd-MM-yyyy",
+                            Locale.getDefault()
+                    ).format(new Date(entry.timestamp));
+                    tv.setOnClickListener(v -> {
+                        Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                        intent.putExtra(SearchActivity.EXTRA_SEARCH_QUERY, formattedTs);
+                        startActivity(intent);
+                    });
+                    flexboxContainer.addView(tv);
                 }
 
+                // "See all…"
                 if (entries.size() > 15) {
-                    // Create the "See all..." TextView programmatically
-                    TextView seeAllTextView = new TextView(MainActivity.this);
-
-                    // Set the text to "See all..."
-                    seeAllTextView.setText(R.string.load_all);
-
-                    // Set the text color to white
-                    seeAllTextView.setTextColor(ContextCompat.getColor(this, android.R.color.white));
-
-                    // Set the text size (optional)
-                    seeAllTextView.setTextSize(16);
-
-                    // Set padding (optional)
-                    seeAllTextView.setPadding(16, 8, 16, 8);
-
-                    // Set an OnClickListener to navigate to LatestEntryActivity when clicked
-                    //seeAllTextView.setOnClickListener(v -> {
-                    //    Intent intent = new Intent(MainActivity.this, LatestEntryActivity.class);
-                    //    startActivity(intent);
-                    //});
-
-                    // Add the "See all..." TextView to the FlexboxLayout
-                    flexboxContainer.addView(seeAllTextView);
+                    TextView seeAll = new TextView(MainActivity.this);
+                    seeAll.setText(R.string.load_all);
+                    seeAll.setTextColor(ContextCompat.getColor(this, android.R.color.white));
+                    seeAll.setTextSize(16);
+                    seeAll.setPadding(16, 8, 16, 8);
+                    flexboxContainer.addView(seeAll);
                 }
 
-                // Add the populated card to the LinearLayout
                 linearLayout.addView(cardView);
             });
         });
     }
-
 }

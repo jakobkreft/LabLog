@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "si.uni_lj.fe.lablog"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "si.uni_lj.fe.lablog"
         minSdk = 29
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 13
         versionName = "1.12"
 

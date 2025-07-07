@@ -44,9 +44,9 @@ import si.uni_lj.fe.lablog.data.KeyDao;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
-import com.google.android.material.textfield.TextInputEditText;
-
 public class SearchActivity extends AppCompatActivity {
+
+    public static final String EXTRA_SEARCH_QUERY = "search_query";
 
     private EditText searchInput;
     private ImageButton searchButton;
@@ -91,244 +91,170 @@ public class SearchActivity extends AppCompatActivity {
         keyDao = MyApp.getDatabase().keyDao();
         executorService = Executors.newSingleThreadExecutor();
 
-
-        // Find the back button by its ID
+        // Back button
         View backButton = findViewById(R.id.backButton);
         backButton.setVisibility(View.VISIBLE);
         backButton.setOnClickListener(v -> finish());
 
+        // Hide search‐nav button
+        findViewById(R.id.searchActivityButton).setVisibility(View.INVISIBLE);
 
-        // Set an OnClickListener to the searchButton
-        View searchActivityButton = findViewById(R.id.searchActivityButton);
-        searchActivityButton.setVisibility(View.INVISIBLE);
-
-        // Set an OnClickListener to the searchButton
-        View settingsButton = findViewById(R.id.settingsButton);
-        settingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(SearchActivity.this, SettingsActivity.class);
-            startActivity(intent);
+        // Settings and add buttons
+        findViewById(R.id.settingsButton).setOnClickListener(v -> {
+            startActivity(new Intent(SearchActivity.this, SettingsActivity.class));
         });
-
-        // Set an OnClickListener to the addButton
-        View addButton = findViewById(R.id.addButton);
-        addButton.setOnClickListener(v -> {
-            Intent intent = new Intent(SearchActivity.this, NewEntryActivity.class);
-            startActivity(intent);
+        findViewById(R.id.addButton).setOnClickListener(v -> {
+            startActivity(new Intent(SearchActivity.this, NewEntryActivity.class));
         });
-
 
         // Load key types map
         loadKeyTypeMap();
 
-        // Set search button click listener
-        searchButton.setOnClickListener(v -> performSearch());
-
-        // Set dateButton click listener to toggle dataLayout visibility
+        // Date toggle
         dateButton.setOnClickListener(v -> toggleDateLayoutVisibility());
 
-
-        // Set date pickers
+        // Date pickers
         startDateButton.setOnClickListener(v -> showDateTimePicker(startDateButton, true));
         endDateButton.setOnClickListener(v -> showDateTimePicker(endDateButton, false));
 
-        TextInputEditText searchInput = findViewById(R.id.searchInput);
-
-        // Set up the listener for the Done action on the keyboard
-        searchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    performSearch();  // Call your search function here
-
-                    // Hide the keyboard
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-
-                    return true;  // Consume the event
-                }
-                return false;  // Don't consume the event if it's not the Done action
+        // Search actions
+        searchButton.setOnClickListener(v -> performSearch());
+        searchInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                performSearch();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                return true;
             }
+            return false;
         });
 
-        performSearch();
+        // If launched from MainActivity snippet click, prefill & search
+        String initialQuery = getIntent().getStringExtra(EXTRA_SEARCH_QUERY);
+        if (initialQuery != null && !initialQuery.isEmpty()) {
+            searchInput.setText(initialQuery);
+            performSearch();
+        } else {
+            // otherwise, load all
+            performSearch();
+        }
     }
 
     private void showDateTimePicker(Button button, boolean isStartDate) {
         final Calendar currentDate = Calendar.getInstance();
         final Calendar date = Calendar.getInstance();
-
-        new DatePickerDialog(this, (view, year, monthOfYear, dayOfMonth) -> {
-            date.set(year, monthOfYear, dayOfMonth);
-            new TimePickerDialog(SearchActivity.this, (view1, hourOfDay, minute) -> {
-                date.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        new DatePickerDialog(this, (view, year, month, day) -> {
+            date.set(year, month, day);
+            new TimePickerDialog(this, (view1, hour, minute) -> {
+                date.set(Calendar.HOUR_OF_DAY, hour);
                 date.set(Calendar.MINUTE, minute);
-                // Set the selected date and time on the button
-                String formattedDate = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(date.getTime());
-                button.setText(formattedDate);
-
-                // Save the timestamp based on the button clicked
-                if (isStartDate) {
-                    startTimestamp = date.getTimeInMillis();
-                } else {
-                    endTimestamp = date.getTimeInMillis();
-                }
-            }, currentDate.get(Calendar.HOUR_OF_DAY), currentDate.get(Calendar.MINUTE), false).show();
-        }, currentDate.get(Calendar.YEAR), currentDate.get(Calendar.MONTH), currentDate.get(Calendar.DAY_OF_MONTH)).show();
+                String formatted = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+                        .format(date.getTime());
+                button.setText(formatted);
+                if (isStartDate) startTimestamp = date.getTimeInMillis();
+                else endTimestamp = date.getTimeInMillis();
+            }, currentDate.get(Calendar.HOUR_OF_DAY),
+                    currentDate.get(Calendar.MINUTE), false).show();
+        }, currentDate.get(Calendar.YEAR),
+                currentDate.get(Calendar.MONTH),
+                currentDate.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     private void loadKeyTypeMap() {
         executorService.execute(() -> {
-            EntryDisplayHelper helper = new EntryDisplayHelper(this, inflater);
-            keyTypeMap = helper.loadKeyTypeMap(keyDao);
+            keyTypeMap = new EntryDisplayHelper(this, inflater).loadKeyTypeMap(keyDao);
         });
     }
+
     private void performSearch() {
-        // Hide the keyboard
+        // Hide keyboard
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
 
-        String searchQuery = searchInput.getText().toString().trim().toLowerCase();
-
+        final String query = searchInput.getText().toString().trim().toLowerCase();
         executorService.execute(() -> {
-            // Fetch all entries from the database
-            List<Entry> allEntries = entryDao.getAllEntries();
-            List<Entry> matchedEntries = new ArrayList<>();
+            List<Entry> all = entryDao.getAllEntries();
+            List<Entry> matched = new ArrayList<>();
+            boolean noFilters = query.isEmpty() && startTimestamp == 0 && endTimestamp == Long.MAX_VALUE;
 
-            // If no search query and no date range is specified, show all entries
-            boolean noFiltersApplied = searchQuery.isEmpty() && startTimestamp == 0 && endTimestamp == Long.MAX_VALUE;
-
-            // Iterate through all entries and check for matches
-            for (Entry entry : allEntries) {
+            for (Entry e : all) {
                 try {
-                    // Check if the entry's timestamp is within the selected range
-                    if (noFiltersApplied || (entry.timestamp >= startTimestamp && entry.timestamp <= endTimestamp)) {
-                        boolean matchFound = false;
-
-                        // If searchQuery is not empty, perform search within the entry's data
-                        if (!searchQuery.isEmpty()) {
-                            JSONObject jsonObject = new JSONObject(entry.payload);
-
-                            // Check if the timestamp matches the search query
-                            String formattedTimestamp = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(new Date(entry.timestamp));
-                            if (formattedTimestamp.toLowerCase().contains(searchQuery)) {
-                                matchFound = true;
-                            }
-
-                            // Iterate through each key-value pair in the JSON object
-                            for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
-                                String key = it.next();
-                                String valueStr = jsonObject.getString(key);
-
-                                // Get the type of the key from the map
-                                String type = keyTypeMap.get(key);
-
-                                // Key names should always be searchable, regardless of the type
-                                if (key.toLowerCase().contains(searchQuery)) {
-                                    matchFound = true;
-                                    break;
-                                }
-
-                                // Skip image values for searching but include key names
-                                if (type != null && !"Image".equalsIgnoreCase(type)) {
-                                    // Check if the value matches the search query
-                                    if (valueStr.toLowerCase().contains(searchQuery)) {
-                                        matchFound = true;
-                                        break;
-                                    }
+                    boolean inRange = (e.timestamp >= startTimestamp && e.timestamp <= endTimestamp);
+                    if (noFilters || inRange) {
+                        boolean match = noFilters;
+                        if (!query.isEmpty()) {
+                            String tsStr = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy",
+                                    Locale.getDefault()).format(new Date(e.timestamp))
+                                    .toLowerCase();
+                            if (tsStr.contains(query)) match = true;
+                            JSONObject obj = new JSONObject(e.payload);
+                            Iterator<String> it = obj.keys();
+                            while (!match && it.hasNext()) {
+                                String k = it.next();
+                                String v = obj.getString(k);
+                                String type = keyTypeMap.get(k);
+                                if (k.toLowerCase().contains(query)) { match = true; break; }
+                                if (type != null && !"image".equalsIgnoreCase(type)
+                                        && v.toLowerCase().contains(query)) {
+                                    match = true; break;
                                 }
                             }
-                        } else {
-                            // If no search query, match by time range or no filters applied
-                            matchFound = true;
                         }
-
-                        // If a match is found (based on time or search query), add the entry to the matchedEntries list
-                        if (matchFound) {
-                            matchedEntries.add(entry);
-                        }
+                        if (match) matched.add(e);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             }
 
-            // Post the results to the main thread for UI update
-            runOnUiThread(() -> displaySearchResults(matchedEntries));
+            runOnUiThread(() -> displaySearchResults(matched));
         });
     }
 
-
-
     private void displaySearchResults(List<Entry> matchedEntries) {
-        // Clear previous search results
         searchResultLayout.removeAllViews();
-
         if (matchedEntries.isEmpty()) {
             Toast.makeText(this, "No matches found", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        EntryDisplayHelper helper = new EntryDisplayHelper(this, inflater);
-        helper.displayEntries(matchedEntries, keyTypeMap, searchResultLayout, true);
+        new EntryDisplayHelper(this, inflater)
+                .displayEntries(matchedEntries, keyTypeMap, searchResultLayout, true);
     }
-
 
     private void toggleDateLayoutVisibility() {
         if (dateLayout.getVisibility() == View.GONE) {
-            // Fade in
             dateLayout.setVisibility(View.VISIBLE);
             Animation fadeIn = new AlphaAnimation(0, 1);
-            fadeIn.setDuration(300); // Duration in milliseconds
+            fadeIn.setDuration(300);
             dateLayout.startAnimation(fadeIn);
         } else {
-            // Fade out
             Animation fadeOut = new AlphaAnimation(1, 0);
-            fadeOut.setDuration(300); // Duration in milliseconds
+            fadeOut.setDuration(300);
             fadeOut.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                    // No need to do anything here
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
+                @Override public void onAnimationStart(Animation animation) {}
+                @Override public void onAnimationRepeat(Animation animation) {}
+                @Override public void onAnimationEnd(Animation animation) {
                     dateLayout.setVisibility(View.GONE);
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                    // No need to do anything here
                 }
             });
             dateLayout.startAnimation(fadeOut);
         }
     }
 
-
-    // Helper method to hide the keyboard
-    private void hideKeyboard() {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-            view.clearFocus();
-        }
-    }
-
-    // Override the dispatchTouchEvent to detect taps outside the input fields
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            View currentFocus = getCurrentFocus();
-            if (currentFocus != null && (currentFocus instanceof EditText)) {
-                int[] location = new int[2];
-                currentFocus.getLocationOnScreen(location);
-                float x = event.getRawX() + currentFocus.getLeft() - location[0];
-                float y = event.getRawY() + currentFocus.getTop() - location[1];
-
-                if (x < currentFocus.getLeft() || x > currentFocus.getRight() ||
-                        y < currentFocus.getTop() || y > currentFocus.getBottom()) {
-                    hideKeyboard();
+            View focus = getCurrentFocus();
+            if (focus instanceof EditText) {
+                int[] loc = new int[2];
+                focus.getLocationOnScreen(loc);
+                float x = event.getRawX(), y = event.getRawY();
+                if (x < loc[0] || x > loc[0] + focus.getWidth()
+                        || y < loc[1] || y > loc[1] + focus.getHeight()) {
+                    InputMethodManager imm = (InputMethodManager)
+                            getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+                    focus.clearFocus();
                 }
             }
         }
