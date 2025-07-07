@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:versionCode="13"
-    android:versionName="1.12">
+    android:versionCode="14"
+    android:versionName="1.13">
     <!-- Increment versionCode with each release and in the build.gradle.kts too!! -->
     <!-- Camera and Storage Permissions -->
     <uses-feature
@@ -25,10 +25,6 @@
         tools:targetApi="35">
         <activity
             android:name=".TimestampFormatSettingsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.LabLog" />
-        <activity
-            android:name=".MainActivity2"
             android:exported="false"
             android:theme="@style/Theme.LabLog" />
         <activity

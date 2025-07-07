@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -64,6 +65,9 @@ public class SearchActivity extends AppCompatActivity {
     // Variables to store the selected timestamps
     private long startTimestamp = 0;
     private long endTimestamp = Long.MAX_VALUE;
+    private static final String PREFS_NAME = "lablog_prefs";
+    private static final String KEY_TIMESTAMP_FORMAT = "pref_timestamp_format";
+    private static final String DEFAULT_TIMESTAMP_FORMAT = "HH:mm:ss dd-MM-yyyy";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,6 +170,25 @@ public class SearchActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Reads the user’s chosen timestamp format (or RAW) and returns
+     * a formatted string for the given epoch millis.
+     */
+    private String formatTimestamp(long ts) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String pattern = prefs.getString(KEY_TIMESTAMP_FORMAT, DEFAULT_TIMESTAMP_FORMAT);
+        if ("RAW".equals(pattern)) {
+            return String.valueOf(ts);
+        }
+        try {
+            return new SimpleDateFormat(pattern, Locale.getDefault())
+                    .format(new Date(ts));
+        } catch (IllegalArgumentException e) {
+            // fallback to default if saved pattern is invalid
+            return new SimpleDateFormat(DEFAULT_TIMESTAMP_FORMAT, Locale.getDefault())
+                    .format(new Date(ts));
+        }
+    }
     private void performSearch() {
         // Hide keyboard
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -175,32 +198,44 @@ public class SearchActivity extends AppCompatActivity {
         executorService.execute(() -> {
             List<Entry> all = entryDao.getAllEntries();
             List<Entry> matched = new ArrayList<>();
-            boolean noFilters = query.isEmpty() && startTimestamp == 0 && endTimestamp == Long.MAX_VALUE;
+            boolean noFilters = query.isEmpty()
+                    && startTimestamp == 0
+                    && endTimestamp == Long.MAX_VALUE;
 
             for (Entry e : all) {
                 try {
-                    boolean inRange = (e.timestamp >= startTimestamp && e.timestamp <= endTimestamp);
+                    boolean inRange = e.timestamp >= startTimestamp && e.timestamp <= endTimestamp;
                     if (noFilters || inRange) {
                         boolean match = noFilters;
+
                         if (!query.isEmpty()) {
-                            String tsStr = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy",
-                                    Locale.getDefault()).format(new Date(e.timestamp))
-                                    .toLowerCase();
-                            if (tsStr.contains(query)) match = true;
-                            JSONObject obj = new JSONObject(e.payload);
-                            Iterator<String> it = obj.keys();
-                            while (!match && it.hasNext()) {
-                                String k = it.next();
-                                String v = obj.getString(k);
-                                String type = keyTypeMap.get(k);
-                                if (k.toLowerCase().contains(query)) { match = true; break; }
-                                if (type != null && !"image".equalsIgnoreCase(type)
-                                        && v.toLowerCase().contains(query)) {
-                                    match = true; break;
+                            // Use the user's chosen format here
+                            String tsStr = formatTimestamp(e.timestamp).toLowerCase();
+                            if (tsStr.contains(query)) {
+                                match = true;
+                            } else {
+                                JSONObject obj = new JSONObject(e.payload);
+                                Iterator<String> it = obj.keys();
+                                while (!match && it.hasNext()) {
+                                    String k = it.next();
+                                    String v = obj.getString(k);
+                                    String type = keyTypeMap.get(k);
+                                    if (k.toLowerCase().contains(query)) {
+                                        match = true;
+                                        break;
+                                    }
+                                    if (type != null && !"image".equalsIgnoreCase(type)
+                                            && v.toLowerCase().contains(query)) {
+                                        match = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                        if (match) matched.add(e);
+
+                        if (match) {
+                            matched.add(e);
+                        }
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -210,6 +245,7 @@ public class SearchActivity extends AppCompatActivity {
             runOnUiThread(() -> displaySearchResults(matched));
         });
     }
+
 
     private void displaySearchResults(List<Entry> matchedEntries) {
         searchResultLayout.removeAllViews();

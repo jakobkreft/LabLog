@@ -1,6 +1,7 @@
 package si.uni_lj.fe.lablog;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -43,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private EntryDao entryDao;
     private KeyDao keyDao;
     private ExecutorService executorService;
+    private static final String PREFS_NAME = "lablog_prefs";
+    private static final String KEY_TIMESTAMP_FORMAT = "pref_timestamp_format";
+    private static final String DEFAULT_TIMESTAMP_FORMAT = "HH:mm:ss dd-MM-yyyy";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,8 +150,28 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-// MainActivity.java
-
+    /**
+     * Read the user’s format choice (or RAW) and return the correctly formatted timestamp string.
+     */
+    private String formatTimestamp(long ts) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String pattern = prefs.getString(KEY_TIMESTAMP_FORMAT, DEFAULT_TIMESTAMP_FORMAT);
+        if ("RAW".equals(pattern)) {
+            return String.valueOf(ts);
+        }
+        try {
+            return new SimpleDateFormat(pattern, Locale.getDefault())
+                    .format(new Date(ts));
+        } catch (IllegalArgumentException e) {
+            // fallback to default if the saved pattern is invalid
+            return new SimpleDateFormat(DEFAULT_TIMESTAMP_FORMAT, Locale.getDefault())
+                    .format(new Date(ts));
+        }
+    }
+    /**
+     * Loads up to 15 recent-entry pills, each using the user’s timestamp format
+     * as the search query when clicked.
+     */
     private void loadAndDisplayTimestamps() {
         executorService.execute(() -> {
             List<Entry> entries = entryDao.getAllEntries();
@@ -156,76 +180,67 @@ public class MainActivity extends AppCompatActivity {
 
             runOnUiThread(() -> {
                 // Header
-                TextView recentEntriesTextView = new TextView(MainActivity.this);
-                recentEntriesTextView.setText(R.string.recent_entries);
-                recentEntriesTextView.setTextSize(18);
-                recentEntriesTextView.setTextColor(ContextCompat.getColor(this, R.color.light_gray));
-                recentEntriesTextView.setPadding(16, 16, 16, 16);
-                linearLayout.addView(recentEntriesTextView);
+                TextView header = new TextView(this);
+                header.setText(R.string.recent_entries);
+                header.setTextSize(18);
+                header.setTextColor(ContextCompat.getColor(this, R.color.light_gray));
+                header.setPadding(16,16,16,16);
+                linearLayout.addView(header);
 
                 // Card container
                 View cardView = inflater.inflate(R.layout.entry_card, linearLayout, false);
-                FlexboxLayout flexboxContainer = cardView.findViewById(R.id.flexboxContainer);
-                cardView.findViewById(R.id.timestampTextView)
-                        .setVisibility(View.GONE);
-                flexboxContainer.removeAllViews();
+                FlexboxLayout flexbox = cardView.findViewById(R.id.flexboxContainer);
+                cardView.findViewById(R.id.timestampTextView).setVisibility(View.GONE);
+                flexbox.removeAllViews();
 
-                int entriesToShow = Math.min(entries.size(), 15);
-                for (int i = 0; i < entriesToShow; i++) {
-                    Entry entry = entries.get(i);
+                int count = Math.min(entries.size(), 15);
+                for (int i = 0; i < count; i++) {
+                    Entry e = entries.get(i);
 
-                    // build snippet ≤40 chars
+                    // build your snippet exactly as before …
                     StringBuilder sb = new StringBuilder();
                     int rem = 40;
                     try {
-                        JSONObject obj = new JSONObject(entry.payload);
+                        JSONObject obj = new JSONObject(e.payload);
                         Iterator<String> keys = obj.keys();
                         while (keys.hasNext() && rem > 0) {
                             String key = keys.next();
                             String v = obj.getString(key);
                             String type = keyTypeMap.get(key);
-                            if ("image".equalsIgnoreCase(type)) {
-                                v = "(img)";
-                            } else if (v.length() > 14) {
-                                v = v.substring(0, 14) + "...";
-                            }
-                            if (sb.length() + v.length() + 2 > 40) {
-                                sb.append("...");
-                                break;
-                            }
+                            if ("image".equalsIgnoreCase(type)) v = "(img)";
+                            else if (v.length()>14) v = v.substring(0,14)+"...";
+                            if (sb.length()+v.length()+2 > 40) { sb.append("..."); break; }
                             sb.append(v);
                             rem = 40 - sb.length();
-                            if (keys.hasNext() && rem > 2) sb.append(", ");
+                            if (keys.hasNext() && rem>2) sb.append(", ");
                         }
-                    } catch (Exception e) {
-                        Log.e("MainActivity", "JSON error", e);
+                    } catch (Exception ex) {
+                        Log.e("MainActivity","JSON error",ex);
                     }
 
-                    // inflate & set up click listener
-                    TextView tv = (TextView) inflater.inflate(
-                            R.layout.quick_value_view, flexboxContainer, false);
-                    final String filterTs = String.valueOf(entry.timestamp);
-                    tv.setText(sb.toString());
-                    String formattedTs = new SimpleDateFormat(
-                            "HH:mm:ss dd-MM-yyyy",
-                            Locale.getDefault()
-                    ).format(new Date(entry.timestamp));
-                    tv.setOnClickListener(v -> {
+                    // inflate pill
+                    TextView pill = (TextView) inflater
+                            .inflate(R.layout.quick_value_view, flexbox, false);
+                    pill.setText(sb.toString());
+
+                    // use the user’s chosen format here
+                    String formattedTs = formatTimestamp(e.timestamp);
+                    pill.setOnClickListener(v -> {
                         Intent intent = new Intent(MainActivity.this, SearchActivity.class);
                         intent.putExtra(SearchActivity.EXTRA_SEARCH_QUERY, formattedTs);
                         startActivity(intent);
                     });
-                    flexboxContainer.addView(tv);
+                    flexbox.addView(pill);
                 }
 
-                // "See all…"
-                if (entries.size() > 15) {
-                    TextView seeAll = new TextView(MainActivity.this);
+                // “See all…” pill if needed
+                if (entries.size()>15) {
+                    TextView seeAll = new TextView(this);
                     seeAll.setText(R.string.load_all);
                     seeAll.setTextColor(ContextCompat.getColor(this, android.R.color.white));
                     seeAll.setTextSize(16);
-                    seeAll.setPadding(16, 8, 16, 8);
-                    flexboxContainer.addView(seeAll);
+                    seeAll.setPadding(16,8,16,8);
+                    flexbox.addView(seeAll);
                 }
 
                 linearLayout.addView(cardView);

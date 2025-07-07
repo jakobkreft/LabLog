@@ -84,6 +84,7 @@
                         android:entries="@array/timestamp_options"
                         android:paddingHorizontal="8dp"
                         android:popupBackground="@android:color/black"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/textSelect"
                         tools:layout_editor_absoluteX="16dp" />
 
@@ -104,9 +105,9 @@
                         android:layout_marginTop="8dp"
                         android:paddingHorizontal="8dp"
                         android:paddingTop="8dp"
-                        android:text="Custom Format"
+                        android:text="Customize"
                         android:textColor="#FFFFFF"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 

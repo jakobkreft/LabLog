@@ -9,5 +9,6 @@
         <item>EEE, dd MMM yyyy HH:mm:ss z (RFC-1123)</item>
         <item>EEEE, dd MMMM yyyy HH:mm (Full weekday)</item>
         <item>yyyyMMdd\'T\'HHmmss\'Z\' (Compact ISO)</item>
+        <item>RAW (Raw epoch ms)</item>
     </string-array>
 </resources>

@@ -43,67 +43,66 @@ public class TimestampFormatSettingsActivity extends AppCompatActivity {
             return insets;
         });
 
-        // prefs
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        // views
         timestampTextView = findViewById(R.id.timestampTextView);
         formatInput       = findViewById(R.id.brokerInput);
         saveButton        = findViewById(R.id.SaveSettingsButton);
         spinner           = findViewById(R.id.spinner);
 
-        // back button
         View back = findViewById(R.id.backButton);
         back.setVisibility(View.VISIBLE);
         back.setOnClickListener(v -> finish());
 
-        // load saved or default pattern
+        // load saved or default
         String currentPattern = prefs.getString(KEY_TIMESTAMP_FORMAT, "HH:mm:ss dd-MM-yyyy");
         formatInput.setText(currentPattern);
 
-        // spinner: when user selects, overwrite input and update preview
+        // spinner selection → overwrite input & preview
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 String selected = parent.getItemAtPosition(pos).toString();
-                // strip off the " (Description)" suffix if present
                 int idx = selected.indexOf(" (");
-                String pattern = idx > 0 ? selected.substring(0, idx) : selected;
+                String pattern = idx>0 ? selected.substring(0,idx) : selected;
+
+                // overwrite input
                 formatInput.setText(pattern);
+                // preview
                 updatePreview(pattern);
             }
             @Override public void onNothingSelected(AdapterView<?> parent) { }
         });
 
-        // set spinner initial position to match the saved pattern
+        // set spinner to currentPattern
         ArrayAdapter<?> adapter = (ArrayAdapter<?>) spinner.getAdapter();
-        for (int i = 0; i < adapter.getCount(); i++) {
+        for (int i=0; i<adapter.getCount(); i++){
             String item = adapter.getItem(i).toString();
             int idx = item.indexOf(" (");
-            String pattern = idx > 0 ? item.substring(0, idx) : item;
-            if (pattern.equals(currentPattern)) {
+            String pattern = idx>0? item.substring(0,idx): item;
+            if (pattern.equals(currentPattern)){
                 spinner.setSelection(i);
                 break;
             }
         }
 
-        // initial preview
         updatePreview(currentPattern);
 
-        // save button: validate, persist, and refresh preview
         saveButton.setOnClickListener(v -> {
             String newPattern = formatInput.getText().toString().trim();
             if (newPattern.isEmpty()) {
                 formatInput.setError("Format cannot be empty");
                 return;
             }
-            // validate pattern
-            try {
-                new SimpleDateFormat(newPattern, Locale.getDefault()).format(new Date());
-            } catch (IllegalArgumentException ex) {
-                formatInput.setError("Invalid pattern");
-                return;
+            // if Raw, no format-validate, otherwise test SimpleDateFormat
+            if (!"RAW".equals(newPattern)) {
+                try {
+                    new SimpleDateFormat(newPattern, Locale.getDefault())
+                            .format(new Date());
+                } catch (IllegalArgumentException ex) {
+                    formatInput.setError("Invalid pattern");
+                    return;
+                }
             }
-            // save
             prefs.edit()
                     .putString(KEY_TIMESTAMP_FORMAT, newPattern)
                     .apply();
@@ -113,10 +112,14 @@ public class TimestampFormatSettingsActivity extends AppCompatActivity {
         });
     }
 
-    /** Formats the current time using `pattern` and displays it. */
     private void updatePreview(String pattern) {
-        String formatted = new SimpleDateFormat(pattern, Locale.getDefault())
-                .format(new Date());
-        timestampTextView.setText(formatted);
+        String out;
+        if ("RAW".equals(pattern)) {
+            out = String.valueOf(new Date().getTime());
+        } else {
+            out = new SimpleDateFormat(pattern, Locale.getDefault())
+                    .format(new Date());
+        }
+        timestampTextView.setText(out);
     }
 }
