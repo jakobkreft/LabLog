@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -52,6 +53,11 @@ public class ImportExportSettingsActivity extends AppCompatActivity {
         findViewById(R.id.Export).setOnClickListener(v -> exportDatabaseToJSON());
         findViewById(R.id.Import).setOnClickListener(v -> startFilePickerForImport());
         findViewById(R.id.DeleteEntries).setOnClickListener(v -> showDeleteEntriesConfirmationDialog());
+
+        // Back button functionality
+        View backButton = findViewById(R.id.backButton);
+        backButton.setVisibility(View.VISIBLE);
+        backButton.setOnClickListener(v -> finish());
     }
 
     private void showDeleteEntriesConfirmationDialog() {

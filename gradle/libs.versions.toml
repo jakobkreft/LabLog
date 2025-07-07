@@ -13,6 +13,8 @@ orgEclipsePahoClientMqttv3 = "1.2.5"
 roomCommon = "2.7.2"
 roomRuntime = "2.7.2"
 roomCompiler = "2.7.2"
+navigationFragment = "2.9.0"
+navigationUi = "2.9.0"
 
 [libraries]
 flexbox = { module = "com.google.android.flexbox:flexbox", version.ref = "flexbox" }
@@ -28,6 +30,8 @@ org-eclipse-paho-client-mqttv3 = { module = "org.eclipse.paho:org.eclipse.paho.c
 room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomRuntime" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomCompiler" }
+navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
+navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

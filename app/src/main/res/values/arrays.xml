@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="timestamp_options">
+        <item>HH:mm:ss dd-MM-yyyy (Default)</item>
+        <item>yyyy-MM-dd\'T\'HH:mm:ssZ (ISO 8601)</item>
+        <item>yyyy-MM-dd HH:mm:ss (Sortable)</item>
+        <item>dd/MM/yyyy HH:mm (European)</item>
+        <item>MM/dd/yyyy hh:mm a (US 12-hour)</item>
+        <item>EEE, dd MMM yyyy HH:mm:ss z (RFC-1123)</item>
+        <item>EEEE, dd MMMM yyyy HH:mm (Full weekday)</item>
+        <item>yyyyMMdd\'T\'HHmmss\'Z\' (Compact ISO)</item>
+    </string-array>
+</resources>

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    tools:context=".TimestampFormatSettingsActivity">
+
+        <ScrollView
+            android:id="@+id/scrollViewTimestampSettings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="Timestamp settings scroll"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp" />
+
+                <TextView
+                    android:id="@+id/textTitleTimestamp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:padding="8dp"
+                    android:text="Timestamp Format"
+                    android:textColor="#FFFFFF"
+                    android:textSize="28sp" />
+
+
+                <TextView
+                    android:id="@+id/timestampTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/timestamp_bg"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="10dp"
+                    android:text="@string/timestamp"
+                    android:textColor="@color/save_button"
+                    android:textSize="16sp"
+                    android:visibility="visible"
+                    android:textIsSelectable="true"/>
+
+
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/settings_rounded_bg">
+
+                    <TextView
+                        android:id="@+id/textSelect"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="8dp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingTop="8dp"
+                        android:text="Select Format"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <Spinner
+                        android:id="@+id/spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_margin="16dp"
+                        android:background="@drawable/spinner_item_background"
+                        android:entries="@array/timestamp_options"
+                        android:paddingHorizontal="8dp"
+                        android:popupBackground="@android:color/black"
+                        app:layout_constraintTop_toBottomOf="@+id/textSelect"
+                        tools:layout_editor_absoluteX="16dp" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/settings_rounded_bg">
+
+                    <TextView
+                        android:id="@+id/textCustomFormat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="8dp"
+                        android:paddingHorizontal="8dp"
+                        android:paddingTop="8dp"
+                        android:text="Custom Format"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="16dp"
+                        android:layout_marginBottom="16dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/textCustomFormat">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/brokerInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/spinner_item_background"
+                            android:imeOptions="actionDone"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:text="HH:mm:ss dd-MM-yyyy"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="370dp" />
+
+
+            </LinearLayout>
+        </ScrollView>
+
+
+        <LinearLayout
+            android:id="@+id/linearLayout3"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:background="@drawable/gradient_footer"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <Button
+                android:id="@+id/SaveSettingsButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24sp"
+                android:background="@drawable/entries_rounded_background"
+                android:backgroundTint="#000000"
+                android:text="@string/save"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                app:icon="@drawable/ic_save"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white" />
+
+        </LinearLayout>
+
+        <include
+            layout="@layout/layout_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

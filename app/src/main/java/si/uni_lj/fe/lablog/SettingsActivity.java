@@ -40,6 +40,12 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        View TimestampLayout = findViewById(R.id.TimestampLayout);
+        TimestampLayout.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, TimestampFormatSettingsActivity.class);
+            startActivity(intent);
+        });
+
         View AboutLayout = findViewById(R.id.AboutLayout);
         AboutLayout.setOnClickListener(v -> {
             Intent intent = new Intent(SettingsActivity.this, AboutSettingsActivity.class);

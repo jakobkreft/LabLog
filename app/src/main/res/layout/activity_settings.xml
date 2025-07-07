@@ -125,6 +125,53 @@
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/TimestampLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:background="@drawable/settings_rounded_bg">
+
+            <TextView
+                android:id="@+id/timestampTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:paddingRight="8dp"
+                android:text="Timestamp Format"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/imageTime"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <ImageView
+                android:id="@+id/imageTime"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_time"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/TimestampDesciption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="16dp"
+                android:paddingRight="8dp"
+                android:text="Customize displayed timestamp format..."
+                android:textColor="#8D8D8D"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/imageTime"
+                app:layout_constraintTop_toBottomOf="@id/timestampTitle" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/AboutLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
