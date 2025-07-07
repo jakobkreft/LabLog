@@ -1,0 +1,4 @@
+New features:
+- Custom Timestamp formats
+- Jump to specific entry from recent flexbox in main
+- Save button and input fields UI improved
