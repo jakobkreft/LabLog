@@ -86,6 +86,9 @@ public class NewEntryActivity extends AppCompatActivity {
     private final int widthStroke = 8;
     private EntryDao entryDao;
 
+    private static final String PREFS_NAME = "lablog_prefs";
+    private static final String KEY_TIMESTAMP_FORMAT = "pref_timestamp_format";
+    private static final String DEFAULT_TIMESTAMP_FORMAT = "HH:mm:ss dd-MM-yyyy";
 
     // Launcher to start RecentKeysActivity and handle the result
     private final ActivityResultLauncher<Intent> selectKeyLauncher =
@@ -143,6 +146,21 @@ public class NewEntryActivity extends AppCompatActivity {
                 }
             });
 
+    private String formatTimestamp(long ts) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String pattern = prefs.getString(KEY_TIMESTAMP_FORMAT, DEFAULT_TIMESTAMP_FORMAT);
+        if ("RAW".equals(pattern)) {
+            return String.valueOf(ts);
+        }
+        try {
+            return new SimpleDateFormat(pattern, Locale.getDefault())
+                    .format(new Date(ts));
+        } catch (IllegalArgumentException e) {
+            // fallback to default if pattern invalid
+            return new SimpleDateFormat(DEFAULT_TIMESTAMP_FORMAT, Locale.getDefault())
+                    .format(new Date(ts));
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,89 +172,82 @@ public class NewEntryActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        // Initialize the DAO
-        keyDao = MyApp.getDatabase().keyDao();
-        // Initialize the DAO
 
-        // Initialize the selected keys list
+        // DAOs
+        keyDao   = MyApp.getDatabase().keyDao();
+        entryDao = MyApp.getDatabase().entryDao();
+
+        // Init selected-keys list
         selectedKeysList = new ArrayList<>();
 
-        // Find the LinearLayout inside the ScrollView where we will add the card
+        // Timestamp card container
         linearLayout = findViewById(R.id.timestampLayout);
+        inflater     = LayoutInflater.from(this);
 
-        // Inflate the key_value_card.xml layout
-        inflater = LayoutInflater.from(this);
+        // Inflate & configure timestamp card
         View timestampCardView = inflater.inflate(R.layout.key_value_card, linearLayout, false);
+        TextView keyNameTextView  = timestampCardView.findViewById(R.id.keyNameText);
+        TextView textValueTextView= timestampCardView.findViewById(R.id.textValue);
 
-        // Set the label "Timestamp" in the keyNameText TextView
-        TextView keyNameTextView = timestampCardView.findViewById(R.id.keyNameText);
         keyNameTextView.setText("Timestamp");
+        // Use user’s saved format
+        textValueTextView.setText(formatTimestamp(System.currentTimeMillis()));
 
-        // Set the current timestamp in the textValue TextView
-        TextView textValueTextView = timestampCardView.findViewById(R.id.textValue);
-        String currentTimestamp = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(new Date());
-        textValueTextView.setText(currentTimestamp);
-
-        // Hide other elements that are not needed for the timestamp card
-        timestampCardView.findViewById(R.id.checkBox2).setVisibility(View.GONE);
+        // Hide all other inputs on this card
+        timestampCardView.findViewById(R.id.checkBox2)      .setVisibility(View.GONE);
         timestampCardView.findViewById(R.id.textInputLayout).setVisibility(View.GONE);
-        timestampCardView.findViewById(R.id.imageButton).setVisibility(View.GONE);
-        timestampCardView.findViewById(R.id.removeButton).setVisibility(View.INVISIBLE);
+        timestampCardView.findViewById(R.id.imageButton)    .setVisibility(View.GONE);
+        timestampCardView.findViewById(R.id.removeButton)   .setVisibility(View.INVISIBLE);
 
-        // Set an OnClickListener on the timestamp card to update the timestamp
-        timestampCardView.setOnClickListener(v -> {
-            // Update the timestamp to the current time
-            String newTimestamp = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy", Locale.getDefault()).format(new Date());
-            textValueTextView.setText(newTimestamp);
-        });
+        // Refresh timestamp on tap
+        timestampCardView.setOnClickListener(v ->
+                textValueTextView.setText(formatTimestamp(System.currentTimeMillis()))
+        );
 
-        // Add the inflated card view to the LinearLayout
         linearLayout.addView(timestampCardView);
 
-        // Back button functionality
+        // Back button
         View backButton = findViewById(R.id.backButton);
         backButton.setVisibility(View.VISIBLE);
         backButton.setOnClickListener(v -> finish());
 
-        // Add key functionality
-        View addKeyTextView = findViewById(R.id.AddKey);
-        addKeyTextView.setOnClickListener(v -> {
-            Intent intent = new Intent(NewEntryActivity.this, RecentKeysActivity.class);
-            // Pass the selected keys list to the RecentKeysActivity
-            intent.putStringArrayListExtra("selectedKeys", selectedKeysList);
-            selectKeyLauncher.launch(intent);
+        // “Add Key” launcher
+        View addKey = findViewById(R.id.AddKey);
+        addKey.setOnClickListener(v -> {
+            Intent i = new Intent(NewEntryActivity.this, RecentKeysActivity.class);
+            i.putStringArrayListExtra("selectedKeys", selectedKeysList);
+            selectKeyLauncher.launch(i);
         });
 
-        // Set up the Save button functionality
-        View saveButton = findViewById(R.id.SaveEntryButton);
-        saveButton.setOnClickListener(v -> saveEntry());
+        // Save entry button
+        View saveBtn = findViewById(R.id.SaveEntryButton);
+        saveBtn.setOnClickListener(v -> saveEntry());
 
-        // Check if a payload is passed for duplication
+        // Duplicate payload?
         String payload = getIntent().getStringExtra("payload");
         if (payload != null) {
-            // Initialize the DAO
-
-            prepopulateWithPayload(payload);  // Method to prepopulate fields
+            prepopulateWithPayload(payload);
         }
 
-        // Initialize FlexboxLayout for key selection
+        // Flexbox for additional keys
         flexboxLayout = findViewById(R.id.flexboxLayout);
-
-        // Inflate the newKey TextView
-        inflater = LayoutInflater.from(this);
-        newKeyTextView = (TextView) inflater.inflate(R.layout.key_text_view_layout, flexboxLayout, false);
+        newKeyTextView = (TextView) inflater.inflate(
+                R.layout.key_text_view_layout, flexboxLayout, false);
         newKeyTextView.setText(R.string.new_key);
-
-        // Set an OnClickListener to the newKey TextView
         newKeyTextView.setOnClickListener(v -> {
-            Intent intent = new Intent(NewEntryActivity.this, NewKeyActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(NewEntryActivity.this, NewKeyActivity.class));
         });
 
-        // Initialize EntryDao
-        AppDatabase db = MyApp.getDatabase();
-        entryDao = db.entryDao();
+        // Image & gallery launchers already registered above
+        // (no changes needed there)
+
+        // Dismiss keyboard on outside touch
+        findViewById(R.id.main).setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) hideKeyboard();
+            return false;
+        });
     }
+
 
     @Override
     protected void onResume() {
