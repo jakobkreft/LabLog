@@ -28,7 +28,7 @@
     <string name="payloadimage">payloadImage</string>
     <string name="last_entry">Last entry</string>
     <string name="recent_entries">Recent entries</string>
-    <string name="load_all">Load all …</string>
+    <string name="load_all">See all …</string>
     <string name="search_icon">search icon</string>
     <string name="search_hint">hint: keys, values, anything…</string>
     <string name="date_icon">date icon</string>

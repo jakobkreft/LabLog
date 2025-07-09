@@ -1,0 +1,2 @@
+Bug fix
+- Recent entries (See all..) button opens search activity

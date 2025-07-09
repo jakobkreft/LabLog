@@ -184,20 +184,26 @@ public class MainActivity extends AppCompatActivity {
                 header.setText(R.string.recent_entries);
                 header.setTextSize(18);
                 header.setTextColor(ContextCompat.getColor(this, R.color.light_gray));
-                header.setPadding(16,16,16,16);
+                header.setPadding(16, 16, 16, 16);
                 linearLayout.addView(header);
 
-                // Card container
+                // Inflate the card container
                 View cardView = inflater.inflate(R.layout.entry_card, linearLayout, false);
                 FlexboxLayout flexbox = cardView.findViewById(R.id.flexboxContainer);
                 cardView.findViewById(R.id.timestampTextView).setVisibility(View.GONE);
                 flexbox.removeAllViews();
 
+                // Tapping anywhere on the card opens unfiltered SearchActivity
+                cardView.setOnClickListener(v -> {
+                    Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                    startActivity(intent);
+                });
+
                 int count = Math.min(entries.size(), 15);
                 for (int i = 0; i < count; i++) {
                     Entry e = entries.get(i);
 
-                    // build your snippet exactly as before …
+                    // build snippet …
                     StringBuilder sb = new StringBuilder();
                     int rem = 40;
                     try {
@@ -208,14 +214,14 @@ public class MainActivity extends AppCompatActivity {
                             String v = obj.getString(key);
                             String type = keyTypeMap.get(key);
                             if ("image".equalsIgnoreCase(type)) v = "(img)";
-                            else if (v.length()>14) v = v.substring(0,14)+"...";
-                            if (sb.length()+v.length()+2 > 40) { sb.append("..."); break; }
+                            else if (v.length() > 14) v = v.substring(0, 14) + "...";
+                            if (sb.length() + v.length() + 2 > 40) { sb.append("..."); break; }
                             sb.append(v);
                             rem = 40 - sb.length();
-                            if (keys.hasNext() && rem>2) sb.append(", ");
+                            if (keys.hasNext() && rem > 2) sb.append(", ");
                         }
                     } catch (Exception ex) {
-                        Log.e("MainActivity","JSON error",ex);
+                        Log.e("MainActivity", "JSON error", ex);
                     }
 
                     // inflate pill
@@ -223,23 +229,28 @@ public class MainActivity extends AppCompatActivity {
                             .inflate(R.layout.quick_value_view, flexbox, false);
                     pill.setText(sb.toString());
 
-                    // use the user’s chosen format here
+                    // Pill-only click: opens SearchActivity filtered by this entry’s timestamp
                     String formattedTs = formatTimestamp(e.timestamp);
                     pill.setOnClickListener(v -> {
                         Intent intent = new Intent(MainActivity.this, SearchActivity.class);
                         intent.putExtra(SearchActivity.EXTRA_SEARCH_QUERY, formattedTs);
                         startActivity(intent);
                     });
+
                     flexbox.addView(pill);
                 }
 
-                // “See all…” pill if needed
-                if (entries.size()>15) {
+                // “See all…” pill
+                if (entries.size() > 15) {
                     TextView seeAll = new TextView(this);
                     seeAll.setText(R.string.load_all);
-                    seeAll.setTextColor(ContextCompat.getColor(this, android.R.color.white));
+                    seeAll.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
                     seeAll.setTextSize(16);
-                    seeAll.setPadding(16,8,16,8);
+                    seeAll.setPadding(16, 24, 16, 8);
+                    seeAll.setOnClickListener(v -> {
+                        Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                        startActivity(intent);
+                    });
                     flexbox.addView(seeAll);
                 }
 
@@ -247,4 +258,5 @@ public class MainActivity extends AppCompatActivity {
             });
         });
     }
+
 }
