@@ -73,10 +73,10 @@ public class MQTTSettingsActivity extends AppCompatActivity {
 
         loadMqttSettings();
 
-        // show/hide auth fields
         authSwitch.setOnCheckedChangeListener((btn, checked) -> {
             usernameContainer.setVisibility(checked ? View.VISIBLE : View.GONE);
             passContainer.setVisibility(checked ? View.VISIBLE : View.GONE);
+            saveSettingsButton.setText(R.string.save);
         });
 
         // show/hide keyboard on outside tap
@@ -99,8 +99,6 @@ public class MQTTSettingsActivity extends AppCompatActivity {
         passwordInput.addTextChangedListener(resetWatcher);
         retainSwitch.setOnCheckedChangeListener((b, c) -> saveSettingsButton.setText(R.string.save));
         mqttSwitch.setOnCheckedChangeListener((b, c) -> saveSettingsButton.setText(R.string.save));
-        authSwitch.setOnCheckedChangeListener((b, c) -> saveSettingsButton.setText(R.string.save));
-
         // save action
         saveSettingsButton.setOnClickListener(v -> saveMqttSettings());
 
